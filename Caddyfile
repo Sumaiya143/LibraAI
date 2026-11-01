@@ -1,0 +1,21 @@
+{$LIBRAAI_DOMAIN} {
+    encode zstd gzip
+    handle_path /backend/* {
+        reverse_proxy libraai:8000
+    }
+    handle {
+        reverse_proxy frontend:3000
+    }
+    header {
+        -Server
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+    log {
+        output stdout
+        format json
+    }
+}

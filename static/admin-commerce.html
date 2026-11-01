@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>LibraAI | Commerce Operations</title><link rel="stylesheet" href="/admin-commerce.css"></head>
+<body><header><a href="/">LibraAI</a><nav><a href="/catalog.html">Catalog</a><a href="/integrations.html">Integrations</a><a href="/admin-payouts.html">Payout review</a></nav></header>
+<main><div class="heading"><div><p class="eyebrow">ADMIN · READ-ONLY MONITORING</p><h1>Commerce operations</h1><p>Review payment, invoice and payout health without changing customer records.</p></div><button id="refresh" type="button">Refresh diagnostics</button></div>
+<p id="message" role="status" aria-live="polite">Sign in as an administrator to load the report.</p>
+<section id="report" hidden><div class="summary"><article><span>Overall status</span><strong id="status">—</strong></article><article><span>Findings</span><strong id="count">—</strong></article><article><span>Last checked (local)</span><strong id="checked">—</strong></article></div>
+<div class="panel"><h2>Diagnostic findings</h2><div id="findings" aria-live="polite"></div></div><details><summary>Raw diagnostic JSON</summary><pre id="raw"></pre></details></section>
+<section class="panel"><h2>Launch limitations</h2><p>This diagnostic dashboard does not confirm real fund settlement, subscription renewal or merchant transfers. Production launch still requires verified payment credentials, provider acceptance testing, HTTPS infrastructure and an independent security review.</p></section>
+</main><script src="/admin-commerce.js" defer></script></body></html>

@@ -1,0 +1,448 @@
+[
+  {
+    "slug": "home-dashboard",
+    "title": "Home & Dashboard",
+    "description": "A personalized starting point for discovery, reading progress and activity.",
+    "tag": "Home",
+    "features": [
+      "Trending and popular books",
+      "Most-read, highest-rated and bestseller collections",
+      "New arrivals and Book of the Day",
+      "Personalized recommendations",
+      "Recently viewed and recently read books",
+      "Quick actions, notifications and activity feed",
+      "Reading statistics and progress overview",
+      "Global search and recently added content"
+    ]
+  },
+  {
+    "slug": "catalog-search",
+    "title": "Book Catalog & Advanced Search",
+    "description": "Find the right title with richer discovery, metadata and availability context.",
+    "tag": "Discover",
+    "features": [
+      "Search by title, author, ISBN, publisher and keyword",
+      "Advanced filters for genre, language, rating, price and format",
+      "Sort by relevance, popularity, date and rating",
+      "Book metadata, cover, description and table of contents",
+      "Related books, similar authors and availability",
+      "Preview samples and verified reader reviews"
+    ]
+  },
+  {
+    "slug": "ebook-reader",
+    "title": "eBook Reader",
+    "description": "A flexible reading workspace with comfort, progress and annotation tools.",
+    "tag": "Read",
+    "features": [
+      "Page-turn and continuous-scroll modes",
+      "Chapter navigation and table of contents",
+      "Adjustable font size, line spacing and reading themes",
+      "Bookmarks, highlights, private notes and quotations",
+      "Dictionary, translation and reading-time estimate",
+      "Progress sync and licensed offline access"
+    ]
+  },
+  {
+    "slug": "manga-reader",
+    "title": "Manga & Comics Reader",
+    "description": "A dedicated reading experience for panels, pages and volumes.",
+    "tag": "Read",
+    "features": [
+      "Single-page, double-page and vertical layouts",
+      "Zoom and fullscreen controls",
+      "Chapter and volume navigation",
+      "Reading direction preferences",
+      "Bookmarks, favorites and collections",
+      "Progress tracking and new-chapter alerts"
+    ]
+  },
+  {
+    "slug": "audiobooks",
+    "title": "Audiobook Player",
+    "description": "Listen across chapters and continue where you left off.",
+    "tag": "Listen",
+    "features": [
+      "Play, pause, skip, seek and playback queue",
+      "Chapter navigation and playback speed",
+      "Sleep timer and listening bookmarks",
+      "Resume playback and synchronized progress",
+      "Language and narrator details",
+      "Offline listening where licensed"
+    ]
+  },
+  {
+    "slug": "ai-study",
+    "title": "AI Book Assistant & Study Tools",
+    "description": "Study support built around authorized book content and learning goals.",
+    "tag": "Learn",
+    "features": [
+      "Book-grounded questions and chapter explanations",
+      "Chapter and whole-book summaries",
+      "Important concept extraction and passage simplification",
+      "Cross-book search and comparison",
+      "Flashcards, quizzes and MCQs",
+      "Study plans, spaced repetition and vocabulary tools",
+      "Learning progress and quiz performance"
+    ]
+  },
+  {
+    "slug": "marketplace",
+    "title": "Digital Bookstore & Marketplace",
+    "description": "Explore formats, manage purchases and follow orders in one place.",
+    "tag": "Buy",
+    "features": [
+      "Physical books, eBooks and audiobooks",
+      "Cart, checkout and order history",
+      "Coupons, wishlist and read-before-buy samples",
+      "Invoices, delivery tracking and payment status",
+      "Refund and cancellation workflows",
+      "Gifting, resale listings and seller tools"
+    ]
+  },
+  {
+    "slug": "my-bookshelf",
+    "title": "Personal Bookshelf",
+    "description": "Keep your reading life organized and easy to return to.",
+    "tag": "My Library",
+    "features": [
+      "Currently reading, want to read and completed lists",
+      "Favorites, custom collections and read-later",
+      "Reading goals, streaks and progress percentage",
+      "Total books and reading-time summaries",
+      "Paused or abandoned books and reading history",
+      "Notes, quotes, achievements and exportable records"
+    ]
+  },
+  {
+    "slug": "library-operations",
+    "title": "Library Management & Operations",
+    "description": "Tools for cataloguing, circulation, inventory and everyday library work.",
+    "tag": "Manage",
+    "features": [
+      "Create and maintain catalog records and book copies",
+      "ISBN metadata, shelf and rack location",
+      "Barcode/RFID integration points",
+      "Issue, return, renewals, reservations and waitlists",
+      "Overdue tracking, fines, lost and damaged records",
+      "Stock audits, acquisitions, suppliers and purchase orders",
+      "Donations, kiosks, study rooms and circulation reports"
+    ]
+  },
+  {
+    "slug": "library-network",
+    "title": "Multi-Library & Branch Network",
+    "description": "Coordinate collections and lending across branches and institutions.",
+    "tag": "Connect",
+    "features": [
+      "Multiple libraries and branches under one organization",
+      "Centralized dashboard and shared catalog",
+      "Branch-wise inventory and member management",
+      "Cross-branch availability and location maps",
+      "Inter-library loan requests and approvals",
+      "Book transfers, loan tracking and branch reports"
+    ]
+  },
+  {
+    "slug": "community",
+    "title": "Reading Community & Social",
+    "description": "A welcoming place for discussions, clubs, events and shared reading goals.",
+    "tag": "Connect",
+    "features": [
+      "Reader profiles and follow relationships",
+      "Book ratings, reviews, comments and replies",
+      "Discussion rooms and public/private book clubs",
+      "Group reading goals and community challenges",
+      "Events, live reading rooms and shared lists",
+      "Activity feeds and community recommendations",
+      "Spoiler warnings, reporting and moderation tools"
+    ]
+  },
+  {
+    "slug": "creator-portal",
+    "title": "Author & Publisher Portal",
+    "description": "Give creators a workspace for publications, readership and business insights.",
+    "tag": "Publish",
+    "features": [
+      "Author profiles and portfolio dashboard",
+      "Upload and manage book metadata and covers",
+      "Review submission and publication status",
+      "Sales, readership and feedback analytics",
+      "Author-reader Q&A",
+      "Publisher catalog, licensing and distribution settings",
+      "Royalty reports, campaigns and book launches"
+    ]
+  },
+  {
+    "slug": "analytics",
+    "title": "Analytics & Reports",
+    "description": "Understand lending, reading, inventory and marketplace performance.",
+    "tag": "Analyze",
+    "features": [
+      "Catalog, copies, active members and issued books",
+      "Overdue, most-borrowed and top-rated books",
+      "Genre, engagement and completion trends",
+      "Circulation, inventory and revenue analytics",
+      "Subscription and creator performance",
+      "Branch comparisons and demand forecasting",
+      "Date filters, charts and report export"
+    ]
+  },
+  {
+    "slug": "subscriptions",
+    "title": "Subscription & Membership",
+    "description": "Present membership options and manage plan lifecycle clearly.",
+    "tag": "Plans",
+    "features": [
+      "Free, premium, student, family and institutional tiers",
+      "Monthly, quarterly and yearly billing options",
+      "Renewal, cancellation, expiry and payment history",
+      "Reading and download limits",
+      "Premium access and member benefits",
+      "Trials, upgrades, downgrades and invoices"
+    ]
+  },
+  {
+    "slug": "identity-security",
+    "title": "Authentication, Security & Settings",
+    "description": "Account controls, permissions and privacy preferences in one place.",
+    "tag": "Secure",
+    "features": [
+      "Registration, login, email verification and password reset",
+      "Role-based access for admins, librarians, readers and creators",
+      "Profile and account preferences",
+      "Language, theme and notification settings",
+      "Two-factor authentication and activity history",
+      "Audit logs, backup and recovery controls",
+      "Privacy, data export/deletion and licensing restrictions"
+    ]
+  },
+  {
+    "slug": "notifications-workflows",
+    "title": "Notifications & Workflow Automation",
+    "description": "Make routine reminders and operational follow-ups more consistent.",
+    "tag": "Automate",
+    "features": [
+      "Due-date, overdue and reservation alerts",
+      "Waitlist, new-book and new-chapter notifications",
+      "Subscription renewal and payment confirmations",
+      "Order, inter-library loan and request updates",
+      "Inventory alerts and fine calculation workflows",
+      "Scheduled reports and in-app/email notifications",
+      "Admin-configurable rules and push support where available"
+    ]
+  },
+  {
+    "slug": "mobile-accessibility",
+    "title": "Mobile, PWA & Accessibility",
+    "description": "Make the ecosystem comfortable to use across devices and abilities.",
+    "tag": "Access",
+    "features": [
+      "Responsive desktop, tablet and mobile layouts",
+      "Installable PWA capability where configured",
+      "Touch-friendly reader and dashboards",
+      "Keyboard navigation and screen-reader support",
+      "Text and contrast preferences",
+      "Bangla/English interface support",
+      "Offline access and sync where technically and legally supported"
+    ]
+  },
+  {
+    "slug": "advanced-ai",
+    "title": "Advanced AI & Smart Library",
+    "description": "Bring smarter discovery and catalog intelligence to the library ecosystem.",
+    "tag": "Intelligence",
+    "features": [
+      "OCR and ISBN/barcode scanning integration points",
+      "Natural-language and semantic catalog search",
+      "Personalized recommendations and book similarity",
+      "Demand forecasting and metadata suggestions",
+      "Knowledge graph and concept relationships",
+      "AI research and study assistance",
+      "Verified reading signals and abuse-resistant rankings"
+    ]
+  },
+  {
+    "slug": "community-extras",
+    "title": "Community & Extra Programs",
+    "description": "Extend the reading community with campaigns, exchange and support.",
+    "tag": "Participate",
+    "features": [
+      "Book donation campaigns and second-hand exchange",
+      "Book sharing, gifting and reading competitions",
+      "Challenges, badges and community milestones",
+      "Live events, author meetups and Q&A",
+      "Event registration and reminders",
+      "Digital archives, polls and feedback",
+      "Help center, contact support and issue reporting"
+    ]
+  },
+  {
+    "slug": "command-center",
+    "title": "Universal Command Center",
+    "description": "A proposed quick-action hub to navigate and start common tasks faster.",
+    "tag": "Productivity",
+    "features": [
+      "Keyboard shortcut entry point (Ctrl/⌘ + K)",
+      "Search pages, books, members and common actions",
+      "Quick links to notes, reports and catalog tools",
+      "Permission-aware action suggestions",
+      "Recent actions and keyboard-first navigation"
+    ]
+  },
+  {
+    "slug": "voice-assistant",
+    "title": "Voice-First Library Assistant",
+    "description": "A hands-free interface concept for common library requests.",
+    "tag": "Productivity",
+    "features": [
+      "Voice input for search and navigation",
+      "Commands for pending books and renewal guidance",
+      "Read-aloud and accessible interaction patterns",
+      "Confirmation before important transactions",
+      "Requires browser microphone permission and supported services"
+    ]
+  },
+  {
+    "slug": "indoor-navigation",
+    "title": "Indoor Smart Navigation",
+    "description": "Help visitors find shelves, study spaces and service desks.",
+    "tag": "On-site",
+    "features": [
+      "Interactive floor map and shelf locator concept",
+      "Search for rooms, sections and service points",
+      "QR-based location handoff concept",
+      "Accessible routes and destination details",
+      "Precise live positioning requires configured maps or hardware"
+    ]
+  },
+  {
+    "slug": "planner-focus",
+    "title": "Smart Planner & Focus Mode",
+    "description": "Plan reading sessions and protect focused study time.",
+    "tag": "Study",
+    "features": [
+      "Reading schedule based on goals and deadlines",
+      "Pomodoro timer and break reminders",
+      "Reading task list and session summary",
+      "Distraction-reduced reading mode",
+      "Personal notes and knowledge vault concept"
+    ]
+  },
+  {
+    "slug": "smart-handover",
+    "title": "Smart Book Handover & Pickup",
+    "description": "Reduce friction around reservations and counter pickup.",
+    "tag": "Circulation",
+    "features": [
+      "Reservation pickup code concept",
+      "QR-based handover workflow",
+      "Return and collection status",
+      "Staff confirmation and audit trail",
+      "Smart lockers or kiosk hardware require separate integration"
+    ]
+  },
+  {
+    "slug": "building-monitor",
+    "title": "Smart Building Monitoring",
+    "description": "A facility dashboard concept for reading-room conditions.",
+    "tag": "Facilities",
+    "features": [
+      "Room temperature, humidity, light and occupancy panels",
+      "Threshold-based alert concepts",
+      "Branch and room status views",
+      "Sensor connection and real telemetry require IoT integrations"
+    ]
+  },
+  {
+    "slug": "ai-trust",
+    "title": "AI Answer Verification & Trust",
+    "description": "Make AI answers more transparent and grounded in sources.",
+    "tag": "Trust",
+    "features": [
+      "Source passages and book/page references",
+      "Confidence and evidence indicators",
+      "Unsupported-answer fallback patterns",
+      "Citation review and answer feedback",
+      "Requires a configured retrieval and verification pipeline"
+    ]
+  },
+  {
+    "slug": "data-import",
+    "title": "Smart Data Import & Duplicate Detection",
+    "description": "Bring large catalogs in with a safer review-first workflow.",
+    "tag": "Operations",
+    "features": [
+      "CSV and Excel import preview",
+      "MARC or other formats where parser is configured",
+      "Duplicate ISBN and missing-field detection concept",
+      "Validation report before committing records",
+      "Correction preview and import history"
+    ]
+  },
+  {
+    "slug": "performance-health",
+    "title": "Performance & System Health",
+    "description": "Operational visibility for performance and service reliability.",
+    "tag": "Platform",
+    "features": [
+      "Caching, lazy loading and pagination design",
+      "Search debouncing and responsive images",
+      "API latency and error-rate dashboard concept",
+      "Database, queue and AI-service health indicators",
+      "Alerts, error tracing and uptime history require telemetry"
+    ]
+  },
+  {
+    "slug": "backup-recovery",
+    "title": "Disaster Recovery & Data Integrity",
+    "description": "Protect catalog and transaction data with recovery workflows.",
+    "tag": "Platform",
+    "features": [
+      "Backup status and restore-test overview",
+      "Recovery point and recovery time objectives",
+      "Transaction safety and idempotency patterns",
+      "Data integrity checks and corruption alerts",
+      "Deployment rollback plan and audit history"
+    ]
+  },
+  {
+    "slug": "workflow-builder",
+    "title": "Visual Workflow Builder",
+    "description": "Create automation rules without writing code.",
+    "tag": "Automate",
+    "features": [
+      "Trigger → condition → action builder concept",
+      "Schedule recurring jobs",
+      "Retries, failure alerts and workflow history",
+      "Enable, disable and test workflows",
+      "Example: overdue book → reminder → librarian alert"
+    ]
+  },
+  {
+    "slug": "integration-hub",
+    "title": "Integration Hub & Webhooks",
+    "description": "Connect LibraAI with approved external systems.",
+    "tag": "Platform",
+    "features": [
+      "LMS and university integration directory",
+      "SSO and approved student-record imports",
+      "Payment and notification provider configuration",
+      "API documentation and key management",
+      "Webhooks, retry logs and access controls"
+    ]
+  },
+  {
+    "slug": "privacy-personalization",
+    "title": "Privacy-First Personalization",
+    "description": "Give users control over reading data and recommendations.",
+    "tag": "Privacy",
+    "features": [
+      "Reading-history retention controls",
+      "Consent settings for recommendations",
+      "Private notes separated from shared content",
+      "Data export and deletion workflows",
+      "Staff access restrictions and audit trails"
+    ]
+  }
+]

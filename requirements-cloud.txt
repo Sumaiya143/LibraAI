@@ -1,0 +1,3 @@
+-r requirements-production.txt
+# Optional: install only when LIBRAAI_STORAGE_BACKEND=s3 or minio.
+boto3>=1.34,<2

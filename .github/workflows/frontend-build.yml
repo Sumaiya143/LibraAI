@@ -1,0 +1,38 @@
+name: LibraAI Next.js frontend verification
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install frontend dependencies with committed lockfile when available
+        run: |
+          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+      - name: Validate lockfile
+        run: node scripts/verify-lockfile.mjs
+      - name: Upload generated lockfile for commit if this repository is bootstrapping it
+        if: always() && hashFiles('frontend/package-lock.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: libraai-frontend-package-lock
+          path: frontend/package-lock.json
+          if-no-files-found: error
+      - name: Build production frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          LIBRAAI_BACKEND_URL: http://127.0.0.1:5000
+        run: npm run build

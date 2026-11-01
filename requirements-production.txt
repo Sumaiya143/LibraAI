@@ -1,0 +1,5 @@
+-r requirements.txt
+gunicorn>=22,<24
+boto3>=1.34,<2
+
+cryptography>=49,<51

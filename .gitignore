@@ -1,0 +1,31 @@
+# Local state and secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+*.sqlite*
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+uploads/
+media/
+backups/
+private-backups/
+*.log
+
+
+# Frontend build and browser-test artifacts
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+playwright-report/
+test-results/
+coverage/
+.npm/

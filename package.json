@@ -1,0 +1,13 @@
+{
+  "name": "libraai-e2e-tests",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report playwright-report",
+    "test:e2e:frontend": "playwright test --config=playwright.frontend.config.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

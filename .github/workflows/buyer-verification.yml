@@ -1,0 +1,45 @@
+name: LibraAI Buyer Verification
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned runtime dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Check package for local secrets and databases
+        run: python -B buyer_preflight.py
+      - name: Require payment callback route tests to execute (no skips)
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python -B verify_payment_route_tests.py
+      - name: Run complete unit test suite
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python -B verify_full_test_suite.py
+      - name: Verify public routes and private-route protection
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python -B buyer_acceptance.py
+      - name: Check source compilation
+        env:
+          PYTHONPYCACHEPREFIX: /tmp/libraai-pycache
+        run: python -m compileall -q .
+
+      - name: Validate production Compose configuration
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+      - name: Build production container image
+        run: docker build --pull --tag libraai:ci-verification .

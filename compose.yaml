@@ -1,0 +1,51 @@
+services:
+  libraai:
+    build: .
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    environment:
+      LIBRAAI_ENV: production
+      LIBRAAI_DB_PATH: /data/libraai.db
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - libraai_data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/ready',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      LIBRAAI_BACKEND_URL: http://libraai:8000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      libraai:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    mem_limit: 512m
+volumes:
+  libraai_data:
