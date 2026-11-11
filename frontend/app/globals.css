@@ -527,3 +527,227 @@ body, body * { font-family: 'Lora', Georgia, serif !important; }
 .libra-ai-message{position:relative}.libra-ai-speak{position:absolute;right:6px;bottom:5px;border:0;background:transparent;color:#7d87a7;cursor:pointer}.libra-ai-compose button.voice-active{background:#ffe8e2;color:#d94d3a}.libra-ai-compose{display:flex;gap:6px}.libra-ai-compose input{min-width:0;flex:1}.libra-ai-compose>button{display:grid;place-items:center}
 .css-auth-art{display:block;pointer-events:none;overflow:hidden}.css-auth-art .auth-orb{position:absolute;border-radius:50%;filter:blur(.2px);animation:authFloat 6s ease-in-out infinite}.auth-orb-a{width:210px;height:210px;right:15%;top:8%;background:radial-gradient(circle at 35% 30%,#fff,#dcd7ff 55%,#b6aaff);box-shadow:inset -22px -18px 35px #7565e63b,0 25px 60px #6b59d51c}.auth-orb-b{width:100px;height:100px;left:12%;bottom:12%;background:radial-gradient(circle at 35% 30%,#fff,#d7efff 58%,#a6c6ff);animation-delay:-2s}.auth-3d-book{position:absolute;right:24%;top:30%;width:220px;height:145px;border-radius:16px 20px 20px 16px;transform:rotate(-14deg) perspective(500px) rotateY(-18deg);background:linear-gradient(135deg,#6f62e8,#9a63ee);box-shadow:18px 25px 45px #5548a832,inset 0 1px #ffffff77;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}.auth-3d-book:after{content:"";position:absolute;left:18px;right:18px;bottom:-11px;height:18px;border-radius:0 0 12px 12px;background:#4f45b6;transform:skewX(-18deg)}.auth-3d-book span{font:800 22px Manrope;letter-spacing:3px}.auth-3d-book small{font:700 7px Manrope;letter-spacing:2px;margin-top:7px;opacity:.85}.auth-3d-stack{position:absolute;right:23%;top:31%;width:230px;height:150px;transform:rotate(-14deg);}.auth-3d-stack span{position:absolute;left:15%;width:75%;height:35px;border-radius:9px;background:linear-gradient(100deg,#4f65e9,#9b57e8);box-shadow:10px 12px 25px #5144b329}.auth-3d-stack span:nth-child(1){top:12px;transform:translateX(18px)}.auth-3d-stack span:nth-child(2){top:52px;transform:translateX(8px)}.auth-3d-stack span:nth-child(3){top:92px}.auth-3d-ring{position:absolute;right:10%;top:18%;width:260px;height:260px;border:2px solid #8a7df266;border-radius:50%;transform:rotateX(67deg) rotateZ(-20deg);box-shadow:0 0 0 14px #8a7df20b;animation:authSpin 14s linear infinite}.auth-spark{position:absolute;color:#7d6ff3;font-size:28px;animation:authPulse 2.8s ease-in-out infinite}.auth-spark-a{right:7%;top:43%}.auth-spark-b{left:8%;top:25%;font-size:20px;animation-delay:-1.3s}@keyframes authFloat{50%{transform:translateY(-12px) scale(1.02)}}@keyframes authSpin{to{transform:rotateX(67deg) rotateZ(340deg)}}@keyframes authPulse{50%{transform:scale(1.18) rotate(10deg);opacity:.55}}
 .dash-feature-guide{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,1fr);gap:18px;margin:0 0 18px;padding:18px 20px;border:1px solid #e3e7fa;border-radius:16px;background:linear-gradient(120deg,#fbfbff,#f7f8ff);box-shadow:0 12px 35px #4c5aa40a}.dash-feature-guide-copy>span{font-size:8px;font-weight:800;letter-spacing:.14em;color:#7867d7}.dash-feature-guide-copy h2{font:800 20px Manrope;margin:6px 0;color:#202a50}.dash-feature-guide-copy p{font-size:11px;line-height:1.65;color:#7783a6;margin:0;max-width:680px}.dash-feature-guide-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.dash-feature-guide-stats div{padding:11px;border:1px solid #e5e8f7;border-radius:10px;background:#fff}.dash-feature-guide-stats b{display:block;font-size:11px;color:#29345b}.dash-feature-guide-stats small{display:block;margin-top:4px;font-size:8px;line-height:1.35;color:#9099b5}@media(max-width:800px){.dash-feature-guide{grid-template-columns:1fr}.dash-feature-guide-stats{grid-template-columns:1fr}}
+
+/* ==========================================================================
+   Login / Signup — final polish layer (scoped to the two auth layouts only)
+   Keeps the existing LibraAI design system: Lora headings, DM Sans body,
+   lavender/indigo palette, 17–22px radii and soft elevation.
+   Fixes the light story panel contrast, role selection state and spacing.
+   ========================================================================== */
+.auth-layout,.signup-layout{
+  min-height:calc(100vh - 120px);
+  background:linear-gradient(135deg,#f8f9ff 0%,#fff 50%,#f5f2ff 100%);
+}
+.auth-story,.signup-story{
+  padding:54px 6% 44px 9%;
+  color:var(--ink);
+  background:
+    radial-gradient(ellipse at 84% 10%,rgba(205,198,255,.55) 0%,transparent 46%),
+    radial-gradient(ellipse at 4% 96%,rgba(203,223,255,.5) 0%,transparent 44%),
+    linear-gradient(150deg,#fbfbff 0%,#f4f3ff 58%,#eaeeff 100%);
+}
+.auth-story h1,.signup-story h1{
+  color:var(--ink);
+  text-shadow:none;
+  font-size:clamp(34px,3.5vw,50px);
+  margin-top:18px;
+}
+.signup-story h1{font-size:clamp(31px,3.2vw,45px)}
+.auth-story>p,.signup-story>p{
+  color:#5d6b93;
+  max-width:370px;
+  font-size:13px;
+  line-height:1.8;
+}
+.auth-story .eyebrow,.signup-story .eyebrow{
+  background:#fff;
+  border:1px solid #e2e0ff;
+  color:#5b52d6;
+  padding:8px 13px;
+  font-size:10px;
+  letter-spacing:.08em;
+  box-shadow:0 5px 14px rgba(90,80,220,.08);
+}
+/* keep all readable content above the decorative illustration */
+.auth-story .eyebrow,.auth-story h1,.auth-story>p,
+.signup-story .eyebrow,.signup-story h1,.signup-story>p{position:relative;z-index:2}
+.auth-story .story-points,.signup-story .story-points{
+  gap:12px;
+  margin-top:30px;
+  max-width:345px;
+}
+.story-points>div{
+  padding:11px 13px;
+  border:1px solid rgba(224,228,250,.95);
+  border-radius:14px;
+  background:rgba(255,255,255,.72);
+  box-shadow:0 6px 18px rgba(58,70,140,.05);
+  backdrop-filter:blur(6px);
+}
+.story-points>div>span{
+  width:40px;height:40px;
+  border-radius:12px;
+  background:linear-gradient(145deg,#eeecff,#e2e9ff);
+  color:#5a4ff0;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.9);
+}
+.story-points b{color:#1a2860;font-size:12.5px}
+.story-points small{color:#7481a8;max-width:235px;font-size:10.5px}
+.handwritten{color:#6a5cf0;z-index:2}
+.auth-art,.signup-art{opacity:.85;pointer-events:none}
+
+/* Card shell */
+.auth-card,.signup-card{
+  max-width:520px;
+  border:1px solid #e6e8fb;
+  border-radius:22px;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 26px 70px rgba(38,52,115,.10),0 2px 8px rgba(38,52,115,.04);
+}
+.auth-card{padding:clamp(26px,2.6vw,38px)}
+.signup-card{max-width:620px;padding:26px 28px}
+.auth-card-brand{
+  padding-bottom:18px;
+  margin-bottom:22px;
+  border-bottom:1px solid #eef0fb;
+}
+.signup-card .auth-card-brand{padding-bottom:14px;margin-bottom:18px}
+.auth-card-brand>span{font-size:11px;color:#7a86aa}
+.auth-card-brand>span a{color:#5f4eea}
+.auth-card h2,.signup-card h2{
+  font-family:'Lora',Georgia,serif;
+  font-size:30px;
+  font-weight:700;
+  letter-spacing:-.03em;
+  color:#17234f;
+  margin:0 0 6px;
+}
+.signup-card h2{font-size:27px}
+.form-intro{font-size:12px;color:#7a87ad;margin:0 0 22px;line-height:1.6}
+.signup-card .form-intro{margin-bottom:16px}
+
+/* Labels + fields */
+.auth-card label,.signup-card label:not(.terms-check){
+  font-size:11px;
+  font-weight:700;
+  color:#3b4874;
+  margin:15px 0 7px;
+  letter-spacing:.01em;
+}
+.auth-card .input-wrap,.signup-card .input-wrap{
+  height:46px;
+  border-radius:12px;
+  border-color:#dfe5f4;
+  background:#fbfcff;
+  padding:0 14px;
+  gap:11px;
+  color:#8794b9;
+}
+.signup-card .input-wrap{height:43px}
+.input-wrap:focus-within{
+  border-color:#8f9df6;
+  background:#fff;
+  box-shadow:0 0 0 4px rgba(74,98,232,.10);
+}
+.auth-card .input-wrap input,.signup-card .input-wrap input{
+  font-size:12.5px;
+  color:#1b2a63;
+}
+.signup-card .input-wrap input{font-size:12px}
+.input-wrap input::placeholder{color:#9aa6c7}
+.input-action{color:#8794b9;border-radius:6px;padding:4px}
+.input-action:hover{color:#5c4fe8;background:#f2f1ff}
+.field-hint{display:block;margin-top:6px;font-size:10px;color:#8a95b6}
+
+/* Primary action */
+.auth-card .submit-btn,.signup-card .submit-btn{
+  height:47px;
+  border-radius:12px;
+  font-size:12.5px;
+  font-weight:700;
+  letter-spacing:.01em;
+  margin-top:4px;
+}
+.signup-card .submit-btn{height:45px}
+.submit-btn:disabled{opacity:.65;cursor:not-allowed;transform:none;box-shadow:none}
+.forgot{margin:10px 0 16px}
+.forgot a{font-size:10.5px;color:#6353ee;font-weight:600}
+
+/* Divider + alternate providers */
+.or-divider{font-size:10px;color:#8a95b6;margin:18px 0}
+.or-divider span{background:#e8ebf8}
+.social-login{gap:10px}
+.social-login button{
+  height:42px;
+  border-radius:11px;
+  border-color:#e2e7f6;
+  font-size:10.5px;
+  color:#4f5d88;
+  font-weight:600;
+}
+.signup-card .social-login button{height:38px}
+.safe-note{font-size:10px;color:#8a95b5;margin-top:22px}
+
+/* Role selector */
+.role-select{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:4px}
+.role-option{
+  padding:14px;
+  border-radius:15px;
+  border:1px solid #e2e7f6;
+  background:linear-gradient(150deg,#fff,#f8f9ff);
+  min-height:auto;
+  transition:border-color .18s,box-shadow .18s,background .18s,transform .18s;
+}
+.role-option:hover{border-color:#c3c9f5;transform:translateY(-1px)}
+.role-option.role-active{
+  /* premium-system.css loads after this file and sets border-color with
+     !important, so the selected state needs !important to win the cascade. */
+  border-color:#7f74f6!important;
+  background:linear-gradient(150deg,#f2f0ff,#f7f3ff);
+  box-shadow:0 0 0 3px rgba(101,89,240,.10),0 10px 24px rgba(90,80,220,.08);
+}
+/* premium-system.css also forces min-height:210px on role cards; let them hug
+   their content so the form stays compact. */
+.role-option{min-height:0!important}
+.role-option .role-icon{
+  width:36px;height:36px;margin-bottom:8px;
+  background:linear-gradient(145deg,#eeecff,#e6e9ff);
+  color:#5a4ff0;
+}
+.role-option.role-active .role-icon{
+  background:linear-gradient(145deg,#6558f0,#8b5cf0);
+  color:#fff;
+}
+.role-option>b{font-size:12.5px;color:#1c2a60}
+.role-option>small{font-size:10px;color:#7683a9;min-height:auto;margin-top:3px}
+.role-option ul{font-size:9.5px;line-height:1.85;color:#7c88ad;margin:9px 0 0}
+.role-option em{font-size:7.5px;padding:3px 6px;border-radius:8px;background:linear-gradient(110deg,#6355f0,#9457ee)}
+.radio-dot{align-self:flex-end;margin-top:6px;font-size:14px;line-height:1;color:#c3c8e2}
+.role-active .radio-dot{color:#5b4fe8}
+
+/* Terms + footer */
+.signup-card .terms-check{font-size:10px;color:#6f7ca3;margin:14px 0;line-height:1.6;align-items:flex-start}
+.terms-check input{margin-top:2px;width:14px;height:14px}
+.simple-footer{background:#fff;border-top:1px solid #eceffb;color:#8792b2;font-size:10px;padding:14px 6%;min-height:48px}
+.simple-footer nav a:hover{color:#5f4eea}
+
+/* Responsive */
+@media(max-width:1050px){
+  .auth-story,.signup-story{padding:38px 7% 34px;min-height:auto}
+  .auth-art,.signup-art{opacity:.5}
+  .auth-form-wrap,.signup-form-wrap{padding:30px 6% 44px}
+}
+@media(max-width:640px){
+  .auth-story,.signup-story{padding:32px 6% 30px}
+  .auth-story h1,.signup-story h1{font-size:clamp(28px,8vw,34px)}
+  .story-points{gap:9px;margin-top:22px;max-width:100%}
+  .story-points>div{padding:9px 10px}
+  .story-points small{font-size:9.5px;max-width:100%}
+  .auth-art,.signup-art{opacity:.28;width:60%;height:42%}
+  .handwritten{position:static;display:inline-block;margin-top:18px}
+  .auth-form-wrap,.signup-form-wrap{padding:22px 4% 34px}
+  .auth-card,.signup-card{padding:22px 18px;border-radius:18px}
+  .role-select{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .simple-footer{padding:14px 5%;gap:12px}
+}

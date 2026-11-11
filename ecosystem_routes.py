@@ -20,9 +20,11 @@ def setup_ecosystem(db):
           UNIQUE(user_id, period_start));
         CREATE TABLE IF NOT EXISTS reading_sessions(
           id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-          book_id INTEGER REFERENCES books(id) ON DELETE SET NULL, minutes INTEGER NOT NULL,
+          book_id INTEGER REFERENCES books(id) ON DELETE SET NULL, minutes INTEGER NOT NULL DEFAULT 0,
           pages INTEGER NOT NULL DEFAULT 0, session_date TEXT NOT NULL DEFAULT (date('now')),
-          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, created TEXT,
+          started_at TEXT, ended_at TEXT, seconds INTEGER NOT NULL DEFAULT 0,
+          genre TEXT NOT NULL DEFAULT 'Uncategorized');
         CREATE TABLE IF NOT EXISTS knowledge_notes(
           id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
           book_id INTEGER REFERENCES books(id) ON DELETE SET NULL, title TEXT NOT NULL,
@@ -43,6 +45,19 @@ def setup_ecosystem(db):
           kind TEXT NOT NULL, title TEXT NOT NULL, body TEXT NOT NULL DEFAULT '',
           read_at TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
         ''')
+        # Older databases may already have a reading_sessions table created by
+        # another module with a narrower schema. Add the shared columns without
+        # dropping or rewriting existing session rows.
+        columns = {row['name'] for row in c.execute('PRAGMA table_info(reading_sessions)').fetchall()}
+        for name, definition in {
+            'created': 'TEXT',
+            'started_at': 'TEXT',
+            'ended_at': 'TEXT',
+            'seconds': 'INTEGER NOT NULL DEFAULT 0',
+            'genre': "TEXT NOT NULL DEFAULT 'Uncategorized'",
+        }.items():
+            if name not in columns:
+                c.execute(f'ALTER TABLE reading_sessions ADD COLUMN {name} {definition}')
 
 def _user(current_user):
     u=current_user()

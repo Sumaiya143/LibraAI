@@ -237,7 +237,8 @@ def install(app, db, current_user):
             if not book:return jsonify({'error':'Book not found'}),404
             active=c.execute('SELECT id FROM reading_sessions WHERE user_id=? AND ended_at IS NULL ORDER BY id DESC LIMIT 1',(u['id'],)).fetchone()
             if active:return jsonify({'error':'A reading session is already active','session_id':active['id']}),409
-            cur=c.execute('INSERT INTO reading_sessions(user_id,book_id,started_at,genre) VALUES(?,?,?,?)',(u['id'],bid,datetime.now(timezone.utc).isoformat(),book['genre'] or 'Uncategorized'))
+            now=datetime.now(timezone.utc).isoformat()
+            cur=c.execute('INSERT INTO reading_sessions(user_id,book_id,started_at,genre,minutes,created) VALUES(?,?,?,?,0,?)',(u['id'],bid,now,book['genre'] or 'Uncategorized',now))
         return jsonify({'ok':True,'session_id':cur.lastrowid}),201
 
     @app.post('/api/reader/sessions/<int:session_id>/stop')
@@ -249,7 +250,7 @@ def install(app, db, current_user):
             if not row:return jsonify({'error':'Reading session not found'}),404
             if row['ended_at']:return jsonify({'ok':True,'seconds':row['seconds'],'already_stopped':True})
             start=datetime.fromisoformat(row['started_at']); elapsed=max(0,min(8*3600,int((datetime.now(timezone.utc)-start).total_seconds())))
-            c.execute('UPDATE reading_sessions SET ended_at=?,seconds=? WHERE id=?',(datetime.now(timezone.utc).isoformat(),elapsed,session_id))
+            c.execute('UPDATE reading_sessions SET ended_at=?,seconds=?,minutes=? WHERE id=?',(datetime.now(timezone.utc).isoformat(),elapsed,max(0,elapsed//60),session_id))
         return jsonify({'ok':True,'seconds':elapsed})
 
     @app.get('/api/reader/analytics')

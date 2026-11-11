@@ -143,7 +143,7 @@ def init_db():
     # leave the index absent rather than deleting or rewriting user identities.
     duplicate_email = c.execute("SELECT 1 FROM users WHERE email IS NOT NULL GROUP BY lower(email) HAVING COUNT(*)>1 LIMIT 1").fetchone()
     if not duplicate_email:
-        c.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_lower_unique ON users(lower(email)) WHERE email IS NOT NULL AND email != ''')
+        c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_lower_unique ON users(lower(email)) WHERE email IS NOT NULL AND email != ''")
     from database_performance import create_indexes
     create_indexes(c)
     if os.environ.get('LIBRAAI_ENV') != 'production' and c.execute("SELECT COUNT(*) n FROM users").fetchone()['n'] == 0:
