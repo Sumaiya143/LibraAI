@@ -53,15 +53,20 @@ const audioRanks:Record<string,{title:string;author:string;genre:string;duration
 export default function Home() {
  const [notice,setNotice]=useState<NoticeData>(null);
  const [homeBooks,setHomeBooks]=useState(books);
- useEffect(()=>{let active=true;(async()=>{try{const response=await fetch("/backend/api/books?sort=trending&limit=12",{cache:"no-store"});if(!response.ok)return;const payload=await response.json();const rows=Array.isArray(payload)?payload:(Array.isArray(payload.items)?payload.items:Array.isArray(payload.books)?payload.books:[]);if(!active||!rows.length)return;setHomeBooks(rows.slice(0,12).map((r:any)=>{const title=String(r.title||"Untitled book");const author=String(r.author||"Unknown author");const genre=String(r.genre||"General");return {title,author,genre,rating:String(Number(r.rating||0).toFixed(1)),reviews:String(Number(r.reads||r.sales||0).toLocaleString()),cover:title.toLowerCase().replace(/[^a-z0-9]+/g,"-").split("-")[0]||"book",slug:title.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}}));}catch{/* Keep the existing local preview if the live catalog is unavailable. */}})();return()=>{active=false}},[]);
+ useEffect(()=>{let active=true;(async()=>{try{const response=await fetch("/backend/api/books?sort=trending&limit=12",{cache:"no-store"});if(!response.ok)return;const payload=await response.json();const rows=Array.isArray(payload)?payload:(Array.isArray(payload.items)?payload.items:Array.isArray(payload.books)?payload.books:[]);if(!active||!rows.length)return;setHomeBooks(rows.slice(0,12).map((r:any,index:number)=>{const title=String(r.title||"Untitled book");const author=String(r.author||"Unknown author");const genre=String(r.genre||"General");const coverKeys=Object.keys(coverTitles);return {title,author,genre,rating:String(Number(r.rating||0).toFixed(1)),reviews:String(Number(r.reads||r.sales||0).toLocaleString()),cover:coverKeys.length?coverKeys[index%coverKeys.length]:"atomic",slug:title.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}}));}catch{/* Keep the existing local preview if the live catalog is unavailable. */}})();return()=>{active=false}},[]);
  const [reviewIndex,setReviewIndex]=useState(0);
  const [saved,setSaved]=useState<string[]>([]);
  const [activeGenre,setActiveGenre]=useState("");
  const [sortTab,setSortTab]=useState("Trending");
  const [audioTab,setAudioTab]=useState("Weekly");
  const [openFaq,setOpenFaq]=useState<number|null>(0);
+  const [trendingPerPage,setTrendingPerPage]=useState(4);
+  const [trendingSlide,setTrendingSlide]=useState(0);
+  useEffect(()=>{const update=()=>{const width=window.innerWidth;if(width<=600)setTrendingPerPage(2);else if(width<=900)setTrendingPerPage(3);else setTrendingPerPage(4)};update();window.addEventListener("resize",update);return()=>window.removeEventListener("resize",update)},[]);
  const visibleReviews=[0,1,2].map(offset=>readerReviews[(reviewIndex+offset)%readerReviews.length]);
- const displayedBooks=useMemo(()=>{const map:Record<string,string[]>={"Fiction":["Science Fiction","Romance","Fantasy"],"Non-Fiction":["Self Help","Finance"],"Science & Tech":["Science & Tech","Adventure"],"History":["Finance"],"Fantasy":["Fantasy"],"Romance":["Romance"]};const matches=activeGenre?(map[activeGenre]||[activeGenre]):null;const filtered=matches?homeBooks.filter(b=>matches.some(m=>b.genre.toLowerCase().includes(m.toLowerCase())||m.toLowerCase().includes(b.genre.toLowerCase()))):[...homeBooks];return sortTab==="Top Rated"?filtered.sort((a,b)=>Number(b.rating)-Number(a.rating)):filtered},[activeGenre,sortTab,homeBooks]);
+ const displayedBooks=useMemo(()=>{const map:Record<string,string[]>={"Fiction":["Science Fiction","Romance","Fantasy"],"Non-Fiction":["Self Help","Finance"],"Science & Tech":["Science & Tech","Adventure"],"History":["Finance"],"Fantasy":["Fantasy"],"Romance":["Romance"]};const matches=activeGenre?(map[activeGenre]||[activeGenre]):null;const filtered=matches?homeBooks.filter(b=>matches.some(m=>b.genre.toLowerCase().includes(m.toLowerCase())||m.toLowerCase().includes(b.genre.toLowerCase()))):[...homeBooks];const sorted=sortTab==="Top Rated"?[...filtered].sort((a,b)=>Number(b.rating)-Number(a.rating)):filtered;return sorted},[activeGenre,sortTab,homeBooks]);
+  const trendingSlides=useMemo(()=>{const slides:any[]=[];for(let i=0;i<displayedBooks.length;i+=trendingPerPage)slides.push(displayedBooks.slice(i,i+trendingPerPage));return slides},[displayedBooks,trendingPerPage]);
+  useEffect(()=>{if(trendingSlide>trendingSlides.length-1)setTrendingSlide(Math.max(0,trendingSlides.length-1))},[trendingSlides,trendingSlide]);
  return <><main className="home-premium">
   <section className="home-hero">
    <div className="home-hero-copy">
@@ -84,8 +89,27 @@ export default function Home() {
   </section>
   <section className="home-discovery">
    <div className="home-trending-panel">
-    <div className="home-section-heading"><div><h2><Flame size={18} fill="#ff7b62" color="#ff7b62"/> Trending Books</h2><p>Updated from the LibraAI book catalog</p></div><div className="home-heading-actions"><button className={sortTab==="Trending"?"active":" "} onClick={()=>setSortTab("Trending")}>Trending</button><button className={sortTab==="Top Rated"?"active":" "} onClick={()=>setSortTab("Top Rated")}>Top Rated</button><Link href="/library">View All <ArrowRight size={12}/></Link></div></div>
-    <div className="home-book-grid">{displayedBooks.length?displayedBooks.map((book,i)=><article className="home-book-card" key={book.slug}><span className="home-rank">{i+1}</span><button className={`home-save ${saved.includes(book.slug)?"saved":""}`} aria-label={saved.includes(book.slug)?"Remove from saved books":"Save book"} onClick={()=>setSaved(old=>old.includes(book.slug)?old.filter(x=>x!==book.slug):[...old,book.slug])}><Bookmark size={13} fill={saved.includes(book.slug)?"currentColor":"none"}/></button><Link href={`/library/${book.slug}`} className={`home-book-cover cover-${book.cover}`}><span>{coverTitles[book.cover]||book.title}</span><small>{book.author}</small></Link><Link href={`/library/${book.slug}`} className="home-book-title">{book.title}</Link><small className="home-book-author">{book.author}</small><div className="home-rating"><Star size={12} fill="currentColor"/> {sortTab==="Top Rated"&&book.title==="It Ends with Us"?"4.8":book.rating} <small>({book.reviews})</small></div></article>):<div className="home-empty"><BookOpen size={24}/><b>No books in this genre yet</b><button onClick={()=>setActiveGenre("")}>Show all books</button></div>}</div>
+    <div className="home-section-heading"><div><h2><Flame size={18} fill="#ff7b62" color="#ff7b62"/> Trending Books</h2><p>Updated from the LibraAI book catalog</p></div><div className="home-heading-actions"><button className={sortTab==="Trending"?"active":""} onClick={()=>setSortTab("Trending")}>Trending</button><button className={sortTab==="Top Rated"?"active":""} onClick={()=>setSortTab("Top Rated")}>Top Rated</button><Link href="/library">View All <ArrowRight size={12}/></Link></div></div>
+     {displayedBooks.length?(
+      <div className="home-trending-carousel">
+       <div className="home-carousel-viewport">
+        <div className="home-carousel-track" style={{transform:`translateX(-${trendingSlide*100}%)`}}>
+         {trendingSlides.map((slide,slideIndex)=>(
+          <div className="home-carousel-slide" key={slideIndex}>
+           <div className="home-book-grid" style={{gridTemplateColumns:`repeat(${trendingPerPage},minmax(0,1fr))`}}>
+            {slide.map((book:any,cardIndex:number)=><article className="home-book-card" key={`${book.slug}-${slideIndex}-${cardIndex}`}><span className="home-rank">{slideIndex*trendingPerPage+cardIndex+1}</span><button className={`home-save ${saved.includes(book.slug)?"saved":""}`} aria-label={saved.includes(book.slug)?"Remove from saved books":"Save book"} onClick={()=>setSaved(old=>old.includes(book.slug)?old.filter(x=>x!==book.slug):[...old,book.slug])}><Bookmark size={13} fill={saved.includes(book.slug)?"currentColor":"none"}/></button><Link href={`/library/${book.slug}`} className={`home-book-cover cover-${book.cover}`}><span>{coverTitles[book.cover]||book.title}</span><small>{book.author}</small></Link><Link href={`/library/${book.slug}`} className="home-book-title">{book.title}</Link><small className="home-book-author">{book.author}</small><div className="home-rating"><Star size={12} fill="currentColor"/> {book.rating} <small>({book.reviews})</small></div></article>)}
+           </div>
+          </div>
+         ))}
+        </div>
+       </div>
+       {trendingSlides.length>1&&<>
+        <button type="button" className="home-carousel-arrow home-carousel-prev" aria-label="Previous trending books" onClick={()=>setTrendingSlide(value=>Math.max(0,value-1))} disabled={trendingSlide===0}><ChevronLeft size={18}/></button>
+        <button type="button" className="home-carousel-arrow home-carousel-next" aria-label="Next trending books" onClick={()=>setTrendingSlide(value=>Math.min(trendingSlides.length-1,value+1))} disabled={trendingSlide===trendingSlides.length-1}><ChevronRight size={18}/></button>
+        <div className="home-carousel-dots">{trendingSlides.map((_,i)=><button type="button" key={i} aria-label={`Go to trending books page ${i+1}`} className={i===trendingSlide?"active":""} onClick={()=>setTrendingSlide(i)}/>)}</div>
+       </>}
+      </div>
+     ):<div className="home-empty"><BookOpen size={24}/><b>No books in this genre yet</b><button onClick={()=>setActiveGenre("")}>Show all books</button></div>}
    </div>
    <aside className="home-genres-panel"><div className="home-section-heading"><div><h2>Popular Genres</h2><p>Explore your favorite genres</p></div><Link href="/library">View All <ArrowRight size={12}/></Link></div><div className="genre-grid">{genres.map(({name,count,icon:Icon,search})=><button key={name} onClick={()=>{setActiveGenre(activeGenre===name?"":name);setNotice({kind:"info",message:activeGenre===name?"Showing all trending books":`Filtering trending books by ${name}`})}} className={`genre-card ${activeGenre===name?"genre-active":""}`}><span><Icon size={17}/></span><div><b>{name}</b><small>{count}</small></div></button>)}</div></aside>
   </section>
