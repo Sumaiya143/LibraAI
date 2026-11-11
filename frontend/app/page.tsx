@@ -93,7 +93,7 @@ export default function Home() {
      {displayedBooks.length?(
       <div className="home-trending-carousel">
        <div className="home-carousel-viewport">
-        <div className="home-carousel-track" style={{transform:`translateX(-${trendingSlide*100}%)`}}>
+        <div className="home-carousel-track" style={{transform:`translateX(-${trendingSlides.length?trendingSlide*100/trendingSlides.length:0}%)`}}>
          {trendingSlides.map((slide,slideIndex)=>(
           <div className="home-carousel-slide" key={slideIndex}>
            <div className="home-book-grid" style={{gridTemplateColumns:`repeat(${trendingPerPage},minmax(0,1fr))`}}>
