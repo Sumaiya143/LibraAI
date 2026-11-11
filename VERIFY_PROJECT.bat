@@ -4,13 +4,13 @@ cd /d "%~dp0"
 where py >nul 2>nul
 if errorlevel 1 (
   where python >nul 2>nul
-  if errorlevel 1 (echo Python 3.10+ is required.& pause & exit /b 1)
+  if errorlevel 1 (echo Python 3.12+ is required.& pause & exit /b 1)
   set "PY=python"
 ) else (
   set "PY=py -3"
 )
-echo [1/6] Install backend dependencies in your active environment...
-%PY% -m pip install -r requirements.txt
+echo [1/6] Install backend and test dependencies in your active environment...
+%PY% -m pip install -r requirements-dev.txt
 if errorlevel 1 goto :failed
 echo [2/6] Run environment doctor...
 %PY% -B project_doctor.py

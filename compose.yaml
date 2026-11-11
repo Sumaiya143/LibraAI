@@ -8,6 +8,8 @@ services:
     environment:
       LIBRAAI_ENV: production
       LIBRAAI_DB_PATH: /data/libraai.db
+      LIBRAAI_LIBRARY_TIMEZONE: ${LIBRAAI_LIBRARY_TIMEZONE:-Asia/Dhaka}
+      LIBRAAI_FINE_PER_DAY_PAISE: ${LIBRAAI_FINE_PER_DAY_PAISE:-1000}
     ports:
       - "127.0.0.1:8000:8000"
     volumes:

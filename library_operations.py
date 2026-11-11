@@ -24,8 +24,8 @@ def install(app, db, current_user):
         CREATE TABLE IF NOT EXISTS branch_inventory(branch_id INTEGER NOT NULL REFERENCES library_branches(id),book_id INTEGER NOT NULL REFERENCES books(id),copies INTEGER NOT NULL DEFAULT 0 CHECK(copies>=0),PRIMARY KEY(branch_id,book_id));
         CREATE TABLE IF NOT EXISTS circulation_events(id INTEGER PRIMARY KEY,loan_id INTEGER NOT NULL REFERENCES loans(id),actor_id INTEGER NOT NULL REFERENCES users(id),event TEXT NOT NULL,branch_id INTEGER,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
         CREATE TABLE IF NOT EXISTS book_reservations(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id),book_id INTEGER NOT NULL REFERENCES books(id),branch_id INTEGER REFERENCES library_branches(id),status TEXT NOT NULL DEFAULT 'queued',queue_position INTEGER,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,UNIQUE(user_id,book_id,status));
-        CREATE TABLE IF NOT EXISTS reading_sessions(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id),book_id INTEGER NOT NULL REFERENCES books(id),started_at TEXT NOT NULL,ended_at TEXT,seconds INTEGER NOT NULL DEFAULT 0 CHECK(seconds>=0),genre TEXT NOT NULL DEFAULT 'Uncategorized',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
-        CREATE INDEX IF NOT EXISTS idx_reading_sessions_user_date ON reading_sessions(user_id,started_at);
+        CREATE TABLE IF NOT EXISTS library_reading_sessions(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id),book_id INTEGER NOT NULL REFERENCES books(id),started_at TEXT NOT NULL,ended_at TEXT,seconds INTEGER NOT NULL DEFAULT 0 CHECK(seconds>=0),genre TEXT NOT NULL DEFAULT 'Uncategorized',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+        CREATE INDEX IF NOT EXISTS idx_library_reading_sessions_user_date ON library_reading_sessions(user_id,started_at);
         CREATE INDEX IF NOT EXISTS idx_reservations_status ON book_reservations(status,created_at);
         CREATE INDEX IF NOT EXISTS idx_loans_status_due ON loans(status,due);
         ''')
@@ -235,10 +235,9 @@ def install(app, db, current_user):
         with db() as c:
             book=c.execute('SELECT id,genre FROM books WHERE id=?',(bid,)).fetchone()
             if not book:return jsonify({'error':'Book not found'}),404
-            active=c.execute('SELECT id FROM reading_sessions WHERE user_id=? AND ended_at IS NULL ORDER BY id DESC LIMIT 1',(u['id'],)).fetchone()
+            active=c.execute('SELECT id FROM library_reading_sessions WHERE user_id=? AND ended_at IS NULL ORDER BY id DESC LIMIT 1',(u['id'],)).fetchone()
             if active:return jsonify({'error':'A reading session is already active','session_id':active['id']}),409
-            now=datetime.now(timezone.utc).isoformat()
-            cur=c.execute('INSERT INTO reading_sessions(user_id,book_id,started_at,genre,minutes,created) VALUES(?,?,?,?,0,?)',(u['id'],bid,now,book['genre'] or 'Uncategorized',now))
+            cur=c.execute('INSERT INTO library_reading_sessions(user_id,book_id,started_at,genre) VALUES(?,?,?,?)',(u['id'],bid,datetime.now(timezone.utc).isoformat(),book['genre'] or 'Uncategorized'))
         return jsonify({'ok':True,'session_id':cur.lastrowid}),201
 
     @app.post('/api/reader/sessions/<int:session_id>/stop')
@@ -246,11 +245,11 @@ def install(app, db, current_user):
         u,err=actor()
         if err:return err
         with db() as c:
-            c.execute('BEGIN IMMEDIATE'); row=c.execute('SELECT * FROM reading_sessions WHERE id=? AND user_id=?',(session_id,u['id'])).fetchone()
+            c.execute('BEGIN IMMEDIATE'); row=c.execute('SELECT * FROM library_reading_sessions WHERE id=? AND user_id=?',(session_id,u['id'])).fetchone()
             if not row:return jsonify({'error':'Reading session not found'}),404
             if row['ended_at']:return jsonify({'ok':True,'seconds':row['seconds'],'already_stopped':True})
             start=datetime.fromisoformat(row['started_at']); elapsed=max(0,min(8*3600,int((datetime.now(timezone.utc)-start).total_seconds())))
-            c.execute('UPDATE reading_sessions SET ended_at=?,seconds=?,minutes=? WHERE id=?',(datetime.now(timezone.utc).isoformat(),elapsed,max(0,elapsed//60),session_id))
+            c.execute('UPDATE library_reading_sessions SET ended_at=?,seconds=? WHERE id=?',(datetime.now(timezone.utc).isoformat(),elapsed,session_id))
         return jsonify({'ok':True,'seconds':elapsed})
 
     @app.get('/api/reader/analytics')
@@ -258,6 +257,6 @@ def install(app, db, current_user):
         u,err=actor()
         if err:return err
         with db() as c:
-            daily=c.execute("SELECT date(started_at) day,SUM(seconds) seconds,COUNT(*) sessions FROM reading_sessions WHERE user_id=? AND started_at>=date('now','-29 days') GROUP BY date(started_at) ORDER BY day",(u['id'],)).fetchall()
-            genres=c.execute("SELECT genre,SUM(seconds) seconds,COUNT(*) sessions FROM reading_sessions WHERE user_id=? AND ended_at IS NOT NULL GROUP BY genre ORDER BY seconds DESC",(u['id'],)).fetchall()
+            daily=c.execute("SELECT date(started_at) day,SUM(seconds) seconds,COUNT(*) sessions FROM library_reading_sessions WHERE user_id=? AND started_at>=date('now','-29 days') GROUP BY date(started_at) ORDER BY day",(u['id'],)).fetchall()
+            genres=c.execute("SELECT genre,SUM(seconds) seconds,COUNT(*) sessions FROM library_reading_sessions WHERE user_id=? AND ended_at IS NOT NULL GROUP BY genre ORDER BY seconds DESC",(u['id'],)).fetchall()
         return jsonify({'daily':[dict(r) for r in daily],'genres':[dict(r) for r in genres],'total_seconds':sum(r['seconds'] for r in daily)})

@@ -18,6 +18,10 @@ from input_validation import validate_progress, validate_review, InputValidation
 from safe_redirect import safe_local_return_url
 from session_lifecycle import start_authenticated_session, session_expired, touch_authenticated_session
 app = Flask(__name__)
+# The backend is bound to loopback by Compose and receives requests through the
+# same-host Next.js reverse proxy. Trust only that immediate proxy hop.
+from werkzeug.middleware.proxy_fix import ProxyFix
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 _IS_PRODUCTION = os.environ.get('LIBRAAI_ENV', '').strip().lower() == 'production'
 _configured_secret = os.environ.get('SECRET_KEY', '')
 if _IS_PRODUCTION and len(os.environ.get('SECRET_KEY', '')) < 32:
@@ -37,7 +41,11 @@ app.config.update(
     SESSION_REFRESH_EACH_REQUEST=False,
     MAX_CONTENT_LENGTH=int(os.environ.get('LIBRAAI_MAX_CONTENT_LENGTH', str(2 * 1024 * 1024))),
     PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
+    PREFERRED_URL_SCHEME="https" if _IS_PRODUCTION else "http",
 )
+_trusted_hosts = [h.strip() for h in os.environ.get("LIBRAAI_TRUSTED_HOSTS", "").split(",") if h.strip()]
+if _trusted_hosts:
+    app.config["TRUSTED_HOSTS"] = _trusted_hosts
 DB = os.environ.get("LIBRAAI_DB_PATH", os.path.join(os.path.dirname(__file__), "libraai.db"))
 # SQLite sessions suit a single host. Redis sessions share authenticated state
 # across workers/hosts; the primary application database remains SQLite in this
@@ -149,13 +157,6 @@ def init_db():
     if os.environ.get('LIBRAAI_ENV') != 'production' and c.execute("SELECT COUNT(*) n FROM users").fetchone()['n'] == 0:
         users=[('Reader Demo','reader@libra.ai',generate_password_hash('demo123'),'reader','Student'),('Library Admin','admin@libra.ai',generate_password_hash('demo123'),'admin','Institutional'),('Creator Demo','creator@libra.ai',generate_password_hash('demo123'),'creator','Creator')]
         c.executemany("INSERT INTO users(name,email,password,role,plan) VALUES(?,?,?,?,?)",users)
-        c.execute("UPDATE users SET username='reader' WHERE lower(email)='reader@libra.ai' AND (username IS NULL OR username='')")
-        c.execute("UPDATE users SET username='admin' WHERE lower(email)='admin@libra.ai' AND (username IS NULL OR username='')")
-        c.execute("UPDATE users SET username='seller' WHERE lower(email)='creator@libra.ai' AND (username IS NULL OR username='')")
-    if os.environ.get('LIBRAAI_ENV') != 'production':
-        c.execute("UPDATE users SET username='reader' WHERE lower(email)='reader@libra.ai' AND (username IS NULL OR username='')")
-        c.execute("UPDATE users SET username='admin' WHERE lower(email)='admin@libra.ai' AND (username IS NULL OR username='')")
-        c.execute("UPDATE users SET username='seller' WHERE lower(email)='creator@libra.ai' AND (username IS NULL OR username='')")
     if os.environ.get('LIBRAAI_ENV') != 'production' and c.execute("SELECT COUNT(*) n FROM books").fetchone()['n'] == 0:
         books=[
         ('Atomic Habits','James Clear','Self Development',4.8,125400,52000,2018,'eBook · Print · Audio',499,34,'A practical guide to building better habits through small systems.','English','9780735211292','Central','A-12'),
@@ -167,26 +168,6 @@ def init_db():
         ('Python Crash Course','Eric Matthes','Technology',4.7,55200,22000,2023,'eBook · Print',2999,16,'A hands-on introduction to Python projects.','English','9781718502703','North','T-07'),
         ('Bangla Literature Reader','LibraAI Editions','Literature',4.4,28400,7600,2025,'eBook · Print',699,50,'A demo bilingual reading collection for the LibraAI prototype.','Bangla','9780000000001','Central','B-01')]
         c.executemany("INSERT INTO books(title,author,genre,rating,reads,sales,year,format,price,stock,description,language,isbn,branch,shelf) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",books)
-    if os.environ.get('LIBRAAI_ENV') != 'production':
-        manga_defaults=[
-          ('Solo Leveling','Chugong','Manga',4.9,98000,42000,2018,'Manga',399,25,'A dungeon hunter rises through a mysterious leveling system.','English','MANGA-001','Central','M-01'),
-          ('One Piece','Eiichiro Oda','Manga',4.9,120000,56000,1997,'Manga',450,30,'A grand pirate adventure filled with friendship and discovery.','English','MANGA-002','Central','M-02'),
-          ('Naruto','Masashi Kishimoto','Manga',4.8,115000,52000,1999,'Manga',420,28,'A young ninja works toward recognition and mastery.','English','MANGA-003','Central','M-03'),
-          ('Demon Slayer','Koyoharu Gotouge','Manga',4.8,104000,47000,2016,'Manga',430,24,'A determined swordsman fights to protect his family.','English','MANGA-004','Central','M-04'),
-          ('Attack on Titan','Hajime Isayama','Manga',4.8,110000,50000,2009,'Manga',460,22,'Humanity struggles to survive behind massive walls.','English','MANGA-005','North','M-05'),
-          ('Jujutsu Kaisen','Gege Akutami','Manga',4.7,97000,43000,2018,'Manga',440,20,'A student enters a dangerous world of curses and sorcery.','English','MANGA-006','North','M-06'),
-          ('My Hero Academia','Kohei Horikoshi','Manga',4.7,90000,39000,2014,'Manga',410,21,'A hopeful hero trains to make a difference in a superpowered world.','English','MANGA-007','South','M-07'),
-          ('Haikyuu!!','Haruichi Furudate','Manga',4.8,76000,33000,2012,'Manga',390,18,'A volleyball team grows through practice, rivalry and teamwork.','English','MANGA-008','South','M-08'),
-          ('Spy x Family','Tatsuya Endo','Manga',4.8,72000,31000,2019,'Manga',400,19,'A spy, an assassin and a telepath form an unusual family.','English','MANGA-009','Central','M-09'),
-          ('Blue Lock','Muneyuki Kaneshiro','Manga',4.7,68000,29000,2018,'Manga',405,17,'Elite young strikers compete to become Japan’s ultimate forward.','English','MANGA-010','Central','M-10')
-        ]
-        for manga in manga_defaults:
-            row=c.execute('SELECT id FROM books WHERE isbn=?',(manga[11],)).fetchone()
-            if not row:
-                c.execute("INSERT INTO books(title,author,genre,rating,reads,sales,year,format,price,stock,description,language,isbn,branch,shelf) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",manga)
-                bid=c.lastrowid
-            else: bid=row['id']
-            c.execute('INSERT OR IGNORE INTO catalog_products(book_id,product_type,sale_enabled,digital_available,inventory_quantity,access_type) VALUES(?,?,?,?,?,?)',(bid,'manga',1,1,manga[9],'purchase'))
     if os.environ.get('LIBRAAI_ENV') != 'production':
         demo_products = [('The Midnight Library', 'Matt Haig', 'Fiction', 4.7, 85000, 32000, 2020, 'eBook · Print · Audio', 620, 25, 'A novel about second chances and the lives we might have lived.'), ('Educated', 'Tara Westover', 'Memoir', 4.7, 63000, 21000, 2018, 'eBook · Print', 780, 14, 'A memoir about education, family and self-invention.'), ('Think Again', 'Adam Grant', 'Psychology', 4.6, 44000, 16000, 2021, 'eBook · Print · Audio', 560, 19, 'Learn to rethink assumptions and stay curious.'), ('The Design of Everyday Things', 'Don Norman', 'Design', 4.6, 39000, 13000, 2013, 'eBook · Print', 1250, 11, 'A foundational guide to human-centred design.'), ('Start With Why', 'Simon Sinek', 'Business', 4.5, 55000, 22000, 2009, 'eBook · Print · Audio', 650, 17, 'A framework for purpose-led leadership.'), ('The Lean Startup', 'Eric Ries', 'Business', 4.5, 47000, 18000, 2011, 'eBook · Print', 720, 13, 'Build, measure and learn with disciplined experiments.'), ('The Hobbit', 'J.R.R. Tolkien', 'Fantasy', 4.8, 99000, 46000, 1937, 'eBook · Print · Audio', 850, 22, 'A classic adventure into Middle-earth.'), ('The Name of the Wind', 'Patrick Rothfuss', 'Fantasy', 4.6, 52000, 19000, 2007, 'eBook · Print', 990, 9, 'A lyrical fantasy about a gifted young musician.'), ('The Silent Patient', 'Alex Michaelides', 'Thriller', 4.5, 78000, 35000, 2019, 'eBook · Print · Audio', 590, 24, 'A psychological thriller built around a silent artist.'), ('Gone Girl', 'Gillian Flynn', 'Thriller', 4.4, 69000, 30000, 2012, 'eBook · Print', 650, 16, 'A twist-filled story of marriage and media.'), ('Ikigai', 'Héctor García', 'Self Development', 4.5, 102000, 51000, 2016, 'eBook · Print · Audio', 480, 31, 'Japanese ideas for a meaningful everyday life.'), ('The 5 AM Club', 'Robin Sharma', 'Self Development', 4.4, 59000, 26000, 2018, 'eBook · Print', 560, 18, 'A routine-focused approach to personal growth.'), ('Rich Dad Poor Dad', 'Robert Kiyosaki', 'Finance', 4.5, 145000, 72000, 1997, 'eBook · Print · Audio', 520, 37, 'Personal finance lessons about assets and mindset.'), ('The Intelligent Investor', 'Benjamin Graham', 'Finance', 4.6, 41000, 15000, 1949, 'eBook · Print', 1350, 8, 'A classic introduction to value investing principles.'), ('A Brief History of Time', 'Stephen Hawking', 'Science', 4.6, 61000, 24000, 1988, 'eBook · Print · Audio', 780, 12, 'A readable journey through cosmology and time.'), ('The Body', 'Bill Bryson', 'Science', 4.6, 37000, 12000, 2019, 'eBook · Print', 920, 10, 'An engaging tour of the human body.'), ('Pride and Prejudice', 'Jane Austen', 'Classic', 4.8, 83000, 42000, 1813, 'eBook · Print · Audio', 390, 28, 'A beloved classic of manners, family and romance.'), ('The Great Gatsby', 'F. Scott Fitzgerald', 'Classic', 4.4, 75000, 33000, 1925, 'eBook · Print', 420, 20, 'A portrait of ambition and the Jazz Age.'), ('The Art of War', 'Sun Tzu', 'Strategy', 4.5, 66000, 28000, -500, 'eBook · Print', 350, 23, 'An enduring text on strategy and leadership.'), ('Show Your Work!', 'Austin Kleon', 'Creativity', 4.5, 29000, 11000, 2014, 'eBook · Print', 540, 15, 'Practical encouragement for sharing creative work.'), ('Steal Like an Artist', 'Austin Kleon', 'Creativity', 4.6, 35000, 15000, 2012, 'eBook · Print', 490, 18, 'A short guide to creative influence and practice.'), ('The Pragmatic Programmer', 'David Thomas', 'Technology', 4.7, 46000, 17000, 1999, 'eBook · Print', 1850, 12, 'Timeless practices for effective software development.'), ('Designing Data-Intensive Applications', 'Martin Kleppmann', 'Technology', 4.8, 33000, 12000, 2017, 'eBook · Print', 2450, 7, 'A deep guide to modern data systems.'), ('JavaScript: The Good Parts', 'Douglas Crockford', 'Technology', 4.3, 28000, 10000, 2008, 'eBook · Print', 890, 13, 'A concise tour of JavaScript language patterns.'), ('The Little Prince', 'Antoine de Saint-Exupéry', 'Classic', 4.8, 90000, 47000, 1943, 'eBook · Print · Audio', 460, 29, 'A poetic fable about friendship and seeing clearly.'), ('Before the Coffee Gets Cold', 'Toshikazu Kawaguchi', 'Fiction', 4.4, 48000, 22000, 2015, 'eBook · Print', 610, 16, 'A café offers visitors a chance to revisit the past.'), ('Convenience Store Woman', 'Sayaka Murata', 'Fiction', 4.2, 25000, 9000, 2016, 'eBook · Print', 530, 10, 'A sharp, unconventional story about belonging.'), ('The Song of Achilles', 'Madeline Miller', 'Historical Fiction', 4.7, 72000, 36000, 2011, 'eBook · Print · Audio', 740, 19, 'A retelling of the myth of Achilles and Patroclus.')]
         for product in demo_products:
@@ -203,7 +184,7 @@ def init_db():
             if not c.execute('SELECT 1 FROM books WHERE title=?',(product[0],)).fetchone():
                 c.execute('INSERT INTO books(title,author,genre,rating,reads,sales,year,format,price,stock,description,language,isbn,branch,shelf) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', (*product,'English','', 'Central','S-02'))
         # Keep a browsable audio shelf in development; these are sample metadata, not licensed full recordings.
-        audio_items = [(1, 'Atomic Habits', 'James Clear', 'Audiobook', 'Personal Growth', 4.9, '5h 35m', 'Small changes, remarkable results. A practical guide to building lasting habits.', 'violet'), (2, 'The Psychology of Money', 'Morgan Housel', 'Audiobook', 'Business', 4.8, '5h 48m', 'Timeless lessons about wealth, behaviour and long-term thinking.', 'gold'), (3, 'Ikigai', 'Héctor García & Francesc Miralles', 'Audiobook', 'Wellbeing', 4.7, '3h 12m', 'Explore the Japanese concept of purpose and everyday meaning.', 'mint'), (4, 'Deep Work', 'Cal Newport', 'Audiobook', 'Productivity', 4.8, '7h 44m', 'Build focus and do meaningful work in a distracted world.', 'blue'), (5, 'The Midnight Library', 'Matt Haig', 'Audiobook', 'Fiction', 4.7, '8h 50m', 'A moving story about choices, possibility and second chances.', 'rose'), (6, 'Sapiens', 'Yuval Noah Harari', 'Audiobook', 'History', 4.8, '15h 17m', 'A sweeping story of humankind and the ideas that shaped us.', 'gold'), (7, 'The Little Prince', 'Antoine de Saint-Exupéry', 'Audiobook', 'Classics', 4.9, '2h 10m', 'A timeless fable about friendship, imagination and love.', 'blue'), (8, 'Think Again', 'Adam Grant', 'Audiobook', 'Psychology', 4.6, '8h  rethink', 'Discover the power of knowing what you do not know.', 'mint'), (9, 'The Hobbit', 'J.R.R. Tolkien', 'Audiobook', 'Fantasy', 4.9, '11h 8m', 'Join Bilbo Baggins on an unexpected adventure.', 'violet'), (10, 'The Alchemist', 'Paulo Coelho', 'Audiobook', 'Fiction', 4.7, '4h 0m', 'A journey toward dreams, courage and personal legend.', 'rose'), (11, 'The Daily Stoic', 'Ryan Holiday', 'Audiobook', 'Philosophy', 4.6, '7h 8m', 'Short reflections on clarity, resilience and the good life.', 'gold'), (12, 'The Design of Everyday Things', 'Don Norman', 'Audiobook', 'Design', 4.7, '7h 20m', 'Understand why good design makes everyday life easier.', 'blue'), (13, 'The Creative Act', 'Rick Rubin', 'Audiobook', 'Creativity', 4.8, '5h 55m', 'A generous meditation on the creative process.', 'mint'), (14, 'Pride and Prejudice', 'Jane Austen', 'Audiobook', 'Classics', 4.8, '11h 35m', 'A witty classic of first impressions and lasting affection.', 'rose'), (15, 'A Brief History of Time', 'Stephen Hawking', 'Audiobook', 'Science', 4.6, '5h 0m', 'Big questions about the universe, explained with wonder.', 'violet'), (16, 'The Curious Reader', 'LibraAI Studio', 'Podcast', 'Culture', 4.8, '28 min', 'Weekly conversations about books, ideas and the people behind them.', 'gold'), (17, 'Pages & Perspectives', 'LibraAI Studio', 'Podcast', 'Interviews', 4.7, '34 min', 'Authors and readers share the stories that changed their thinking.', 'blue'), (18, 'The Learning Loop', 'LibraAI Studio', 'Podcast', 'Learning', 4.9, '22 min', 'Practical conversations on curiosity, memory and lifelong learning.', 'mint'), (19, 'Quiet Chapters', 'LibraAI Studio', 'Podcast', 'Wellbeing', 4.6, '19 min', 'A calm pause with reflections, reading rituals and mindful ideas.', 'rose'), (20, 'Future in Focus', 'LibraAI Studio', 'Podcast', 'Technology', 4.7, '31 min', 'Explore technology, creativity and the future of knowledge.', 'violet')]
+        audio_items = [(1, 'Atomic Habits', 'James Clear', 'Audiobook', 'Personal Growth', 4.9, '5h 35m', 'Small changes, remarkable results. A practical guide to building lasting habits.', 'violet'), (2, 'The Psychology of Money', 'Morgan Housel', 'Audiobook', 'Business', 4.8, '5h 48m', 'Timeless lessons about wealth, behaviour and long-term thinking.', 'gold'), (3, 'Ikigai', 'Héctor García & Francesc Miralles', 'Audiobook', 'Wellbeing', 4.7, '3h 12m', 'Explore the Japanese concept of purpose and everyday meaning.', 'mint'), (4, 'Deep Work', 'Cal Newport', 'Audiobook', 'Productivity', 4.8, '7h 44m', 'Build focus and do meaningful work in a distracted world.', 'blue'), (5, 'The Midnight Library', 'Matt Haig', 'Audiobook', 'Fiction', 4.7, '8h 50m', 'A moving story about choices, possibility and second chances.', 'rose'), (6, 'Sapiens', 'Yuval Noah Harari', 'Audiobook', 'History', 4.8, '15h 17m', 'A sweeping story of humankind and the ideas that shaped us.', 'gold'), (7, 'The Little Prince', 'Antoine de Saint-Exupéry', 'Audiobook', 'Classics', 4.9, '2h 10m', 'A timeless fable about friendship, imagination and love.', 'blue'), (8, 'Think Again', 'Adam Grant', 'Audiobook', 'Psychology', 4.6, 'Duration varies', 'Discover the power of knowing what you do not know.', 'mint'), (9, 'The Hobbit', 'J.R.R. Tolkien', 'Audiobook', 'Fantasy', 4.9, '11h 8m', 'Join Bilbo Baggins on an unexpected adventure.', 'violet'), (10, 'The Alchemist', 'Paulo Coelho', 'Audiobook', 'Fiction', 4.7, '4h 0m', 'A journey toward dreams, courage and personal legend.', 'rose'), (11, 'The Daily Stoic', 'Ryan Holiday', 'Audiobook', 'Philosophy', 4.6, '7h 8m', 'Short reflections on clarity, resilience and the good life.', 'gold'), (12, 'The Design of Everyday Things', 'Don Norman', 'Audiobook', 'Design', 4.7, '7h 20m', 'Understand why good design makes everyday life easier.', 'blue'), (13, 'The Creative Act', 'Rick Rubin', 'Audiobook', 'Creativity', 4.8, '5h 55m', 'A generous meditation on the creative process.', 'mint'), (14, 'Pride and Prejudice', 'Jane Austen', 'Audiobook', 'Classics', 4.8, '11h 35m', 'A witty classic of first impressions and lasting affection.', 'rose'), (15, 'A Brief History of Time', 'Stephen Hawking', 'Audiobook', 'Science', 4.6, '5h 0m', 'Big questions about the universe, explained with wonder.', 'violet'), (16, 'The Curious Reader', 'LibraAI Studio', 'Podcast', 'Culture', 4.8, '28 min', 'Weekly conversations about books, ideas and the people behind them.', 'gold'), (17, 'Pages & Perspectives', 'LibraAI Studio', 'Podcast', 'Interviews', 4.7, '34 min', 'Authors and readers share the stories that changed their thinking.', 'blue'), (18, 'The Learning Loop', 'LibraAI Studio', 'Podcast', 'Learning', 4.9, '22 min', 'Practical conversations on curiosity, memory and lifelong learning.', 'mint'), (19, 'Quiet Chapters', 'LibraAI Studio', 'Podcast', 'Wellbeing', 4.6, '19 min', 'A calm pause with reflections, reading rituals and mindful ideas.', 'rose'), (20, 'Future in Focus', 'LibraAI Studio', 'Podcast', 'Technology', 4.7, '31 min', 'Explore technology, creativity and the future of knowledge.', 'violet')]
         for item in audio_items:
             c.execute('INSERT OR IGNORE INTO audio_catalog(id,title,creator,kind,category,rating,duration,description,accent) VALUES(?,?,?,?,?,?,?,?,?)', item)
     if os.environ.get('LIBRAAI_ENV') != 'production' and c.execute("SELECT COUNT(*) n FROM clubs").fetchone()['n'] == 0:
@@ -285,7 +266,7 @@ def score_book(b, mode='trending'):
     return math.log10(b['reads']+1)*.45 + math.log10(b['sales']+1)*.25 + b['rating']*.2 + recency*.1
 
 def book_rows(order='trending', genre=None, q=None):
-    c=db(); rows=[dict(x) for x in c.execute("SELECT b.*, COALESCE(cp.product_type,'physical_book') AS product_type, COALESCE(cp.sale_enabled,1) AS sale_enabled, COALESCE(cp.digital_available,0) AS digital_available, COALESCE(cp.inventory_quantity,b.stock,0) AS inventory_quantity, COALESCE(cp.access_type,'purchase') AS access_type, CASE WHEN COALESCE(cp.sale_enabled,1)=0 THEN 'Unavailable' WHEN COALESCE(cp.digital_available,0)=1 THEN 'Available Online' WHEN COALESCE(cp.inventory_quantity,b.stock,0)>0 THEN 'In Stock' ELSE 'Out of Stock' END AS availability_status FROM books b LEFT JOIN catalog_products cp ON cp.book_id=b.id").fetchall()]; c.close()
+    c=db(); rows=[dict(x) for x in c.execute("SELECT b.*, COALESCE(cp.product_type,'physical_book') AS product_type, COALESCE(cp.sale_enabled,1) AS sale_enabled, COALESCE(cp.digital_available,0) AS digital_available, COALESCE(cp.inventory_quantity,b.stock,0) AS inventory_quantity, COALESCE(cp.access_type,'purchase') AS access_type, COALESCE(cp.updated_at,cp.created_at) AS updated_at, CASE WHEN COALESCE(cp.sale_enabled,1)=0 THEN 'Unavailable' WHEN COALESCE(cp.digital_available,0)=1 THEN 'Available Online' WHEN COALESCE(cp.inventory_quantity,b.stock,0)>0 THEN 'In Stock' ELSE 'Out of Stock' END AS availability_status FROM books b LEFT JOIN catalog_products cp ON cp.book_id=b.id").fetchall()]; c.close()
     if genre and genre!='All': rows=[b for b in rows if b['genre']==genre]
     if q:
         q=q.lower(); rows=[b for b in rows if q in (b['title']+' '+b['author']+' '+b['genre']+' '+b['isbn']).lower()]
@@ -346,8 +327,10 @@ def _auth_json_user(user):
 
 
 def _workspace_for_role(user):
-    role = str(user['role'] or 'reader').lower()
-    return {'creator': '/creator', 'admin': '/admin/dashboard', 'librarian': '/librarian'}.get(role, '/')
+    # The Next.js dashboard is the unified, role-aware workspace for every account.
+    # Keep role-specific navigation inside /dashboard rather than redirecting to
+    # legacy Flask pages that are not part of the primary frontend experience.
+    return '/dashboard'
 
 
 @app.get('/api/me')
@@ -445,7 +428,13 @@ def api_login():
                     (identifier.lower(),),
                 ).fetchall()
             user = matches[0] if len(matches) == 1 else None
-        if not user or not check_password_hash(user['password'], supplied_password):
+        suspended = False
+        if user:
+            has_controls = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='member_controls'").fetchone()
+            if has_controls:
+                control = conn.execute("SELECT status FROM member_controls WHERE user_id=?", (user['id'],)).fetchone()
+                suspended = bool(control and control['status'] == 'suspended')
+        if not user or not check_password_hash(user['password'], supplied_password) or suspended:
             failed(conn, key)
             return _auth_json_error('Username/email or password is incorrect. Please try again.', 401)
         clear(conn, key)
@@ -706,8 +695,13 @@ def action(kind,bid):
             c.close(); abort(400,'Quantity must be between 1 and 99')
         c.execute('INSERT INTO cart(user_id,book_id,qty,format) VALUES(?,?,?,?) ON CONFLICT(user_id,book_id,format) DO UPDATE SET qty=MIN(99,cart.qty+excluded.qty)',(uid,bid,quantity,selected_format))
         flash('Added '+str(quantity)+' × '+selected_format+' to cart.')
-    elif kind=='borrow' and os.environ.get('LIBRAAI_ENV') == 'production': c.close(); abort(503, 'Borrowing requires a verified inventory and lending integration')
-    elif kind=='borrow': c.execute("INSERT INTO loans(user_id,book_id,status,due,branch,created) VALUES(?,?, 'Borrowed',?,?,?)",(uid,bid,(datetime.now()+timedelta(days=14)).date().isoformat(),'Central',datetime.now().isoformat(timespec='seconds'))); flash('Demo loan created. If unavailable, production logic would create reservation/waitlist/inter-library request.')
+    elif kind=='borrow':
+        from circulation import borrow_book, CirculationError
+        try:
+            result = borrow_book(c, uid, bid)
+        except CirculationError as exc:
+            c.close(); abort(409, str(exc))
+        flash('Book borrowed. Due date: ' + result['due'])
     else: c.close(); abort(400, 'Unknown action')
     c.commit(); c.close(); audit(kind+' book'); return redirect('/checkout' if kind=='cart' and request.form.get('buy_now')=='1' else safe_local_return_url(request.referrer, request.host, request.scheme))
 
@@ -729,26 +723,172 @@ def remove_wishlist_item(bid):
 @login_required
 def library():
     c=db(); uid=current_user()['id']; wish=c.execute("SELECT b.* FROM wishlist w JOIN books b ON b.id=w.book_id WHERE w.user_id=?",(uid,)).fetchall(); loans=c.execute("SELECT l.*,b.title FROM loans l JOIN books b ON b.id=l.book_id WHERE l.user_id=? ORDER BY l.created DESC",(uid,)).fetchall(); prog=c.execute("SELECT p.*,b.title FROM progress p JOIN books b ON b.id=p.book_id WHERE p.user_id=?",(uid,)).fetchall(); c.close()
-    return page('My Library','''<h1>My Library</h1><div class="tabs"><span class="pill">Owned</span><span class="pill">Borrowed</span><span class="pill">Wishlist</span><span class="pill">Downloads</span><span class="pill">History</span></div><h2>Borrowing, renewals & reservations</h2><table class="table"><tr><th>Book</th><th>Status</th><th>Due</th><th>Action</th></tr>{% for x in loans %}<tr><td>{{x['title']}}</td><td>{{x['status']}}</td><td>{{x['due']}}</td><td>{% if x['status'] != 'Returned' %}<form method="post" action="/loan/{{x['id']}}/renew" style="display:inline"><button class="btn ghost">Renew</button></form> <form method="post" action="/loan/{{x['id']}}/return" style="display:inline" onsubmit="return confirm('Confirm return?')"><button class="btn ghost">Return</button></form>{% else %}<span class="muted">Completed</span>{% endif %}</td></tr>{% endfor %}</table><h2>Reading progress</h2><div class="grid">{% for p in prog %}<div class="card"><b>{{p['title']}}</b><p>{{p['percent']}}%</p><div class="bar"><i style="width:{{p['percent']}}%"></i></div></div>{% endfor %}</div><h2>Wishlist</h2><div class="grid">{% for b in wish %}<div class="card"><b>{{b['title']}}</b><p class="muted">{{b['author']}}</p><a href="/book/{{b['id']}}">Open</a></div>{% endfor %}</div>''',wish=wish,loans=loans,prog=prog)
+    return page('My Library','''<h1>My Library</h1><p><a class="btn ghost" href="/account/fines">Library fines & payment</a> <a class="btn ghost" href="/account/library-clearance">Library clearance</a></p><div class="tabs"><span class="pill">Owned</span><span class="pill">Borrowed</span><span class="pill">Wishlist</span><span class="pill">Downloads</span><span class="pill">History</span></div><h2>Borrowing, renewals & reservations</h2><table class="table"><tr><th>Book</th><th>Status</th><th>Due</th><th>Action</th></tr>{% for x in loans %}<tr><td>{{x['title']}}</td><td>{{x['status']}}</td><td>{{x['due']}}</td><td>{% if x['status'] != 'Returned' %}<form method="post" action="/loan/{{x['id']}}/renew" style="display:inline"><button class="btn ghost">Renew</button></form> <form method="post" action="/loan/{{x['id']}}/return" style="display:inline" onsubmit="return confirm('Confirm return?')"><button class="btn ghost">Return</button></form>{% else %}<span class="muted">Completed</span>{% endif %}</td></tr>{% endfor %}</table><h2>Reading progress</h2><div class="grid">{% for p in prog %}<div class="card"><b>{{p['title']}}</b><p>{{p['percent']}}%</p><div class="bar"><i style="width:{{p['percent']}}%"></i></div></div>{% endfor %}</div><h2>Wishlist</h2><div class="grid">{% for b in wish %}<div class="card"><b>{{b['title']}}</b><p class="muted">{{b['author']}}</p><a href="/book/{{b['id']}}">Open</a></div>{% endfor %}</div>''',wish=wish,loans=loans,prog=prog)
+
+@app.route('/account/fines', methods=['GET', 'POST'])
+@app.route('/backend/account/fines', methods=['GET', 'POST'])
+@login_required
+def account_library_fines():
+    from library_fines import user_fines, outstanding_balance, submit_payment, FineError
+    conn = db()
+    uid = current_user()['id']
+    try:
+        if request.method == 'POST':
+            try:
+                submit_payment(conn, uid, request.form.get('payment_reference', ''))
+            except FineError as exc:
+                abort(409, str(exc))
+            flash('Payment reference submitted. Your fine remains unpaid until an administrator verifies the payment.')
+            audit('Submitted library fine payment reference')
+            return redirect('/backend/account/fines')
+        balance = outstanding_balance(conn, uid)
+        fines = user_fines(conn, uid)
+        pending = conn.execute(
+            "SELECT id,amount_paise,reference,status,created_at FROM library_fine_payments WHERE user_id=? ORDER BY id DESC LIMIT 10",
+            (uid,),
+        ).fetchall()
+        conn.commit()
+    finally:
+        conn.close()
+    return page('Library fines', '''<h1>Library fines</h1>
+      <div class="card"><h2>Outstanding balance</h2><p><strong>BDT {{ '%.2f'|format(balance / 100) }}</strong></p>
+      <p class="muted">Loans last 14 days. Fine is BDT 10 per overdue calendar day, starting the day after the due date.</p></div>
+      <h2>Fine ledger</h2><table class="table"><tr><th>Book</th><th>Overdue days</th><th>Amount</th><th>Status</th></tr>
+      {% for f in fines %}<tr><td>{{f['book_title'] or ('Loan #' ~ f['loan_id'])}}</td><td>{{f['overdue_days']}}</td><td>BDT {{'%.2f'|format(f['amount_paise']/100)}}</td><td>{{f['status']}}</td></tr>{% else %}<tr><td colspan="4">No fines recorded.</td></tr>{% endfor %}</table>
+      <h2>Submit payment for verification</h2><p class="muted">Pay through the institution's approved channel, then submit the transaction reference. A payment is settled only after authorized staff verify it.</p>
+      <form method="post" action="/backend/account/fines"><label>Payment transaction/reference</label><input name="payment_reference" maxlength="120" required><button class="btn" type="submit" {% if balance <= 0 %}disabled{% endif %}>Submit reference</button></form>
+      <h2>Payment submissions</h2><table class="table"><tr><th>Reference</th><th>Amount</th><th>Status</th></tr>{% for p in pending %}<tr><td>{{p['reference']}}</td><td>BDT {{'%.2f'|format(p['amount_paise']/100)}}</td><td>{{p['status']}}</td></tr>{% else %}<tr><td colspan="3">No payment submissions.</td></tr>{% endfor %}</table>
+      <p><a href="/backend/account/library-clearance">Check library clearance status</a></p>''', balance=balance, fines=fines, pending=pending)
+
+
+@app.route('/account/library-clearance')
+@app.route('/backend/account/library-clearance')
+@login_required
+def account_library_clearance():
+    from library_fines import outstanding_balance
+    conn = db()
+    try:
+        balance = outstanding_balance(conn, current_user()['id'])
+        conn.commit()
+    finally:
+        conn.close()
+    eligible = balance == 0
+    return page('Library clearance', '''<h1>Library clearance</h1>
+      {% if eligible %}<div class="card"><h2>Library No-Dues Clearance</h2><p>This account has no outstanding library fines.</p><p><strong>Status: Eligible</strong></p><p>Issued by LibraAI library system · {{issued}}</p></div>
+      {% else %}<div class="card"><h2>Clearance pending</h2><p>Outstanding fine: <strong>BDT {{'%.2f'|format(balance/100)}}</strong></p><p>Return overdue books, settle the verified fine, and check again.</p></div>{% endif %}
+      <p class="muted">This is a library no-dues clearance record, not an academic graduation certificate. Academic certificate issuance remains under the institution's applicable rules and law.</p>
+      <p><a href="/backend/account/fines">View fines and payment status</a></p>''', eligible=eligible, balance=balance, issued=datetime.now().date().isoformat())
+
+
+@app.route('/admin/fines', methods=['GET'])
+@app.route('/backend/admin/fines', methods=['GET'])
+@login_required
+def admin_library_fines():
+    if current_user()['role'] != 'admin':
+        abort(403)
+    conn = db()
+    try:
+        rows = conn.execute('''SELECT p.*,u.name AS member_name,u.email AS member_email
+            FROM library_fine_payments p LEFT JOIN users u ON u.id=p.user_id
+            WHERE p.status='pending' ORDER BY p.created_at,p.id''').fetchall()
+    finally:
+        conn.close()
+    return page('Fine payment review', '''<h1>Fine payment review</h1>
+      <table class="table"><tr><th>Member</th><th>Amount</th><th>Reference</th><th>Action</th></tr>
+      {% for p in rows %}<tr><td>{{p['member_name'] or p['member_email'] or p['user_id']}}</td><td>BDT {{'%.2f'|format(p['amount_paise']/100)}}</td><td>{{p['reference']}}</td><td><form method="post" action="/backend/admin/fines/{{p['id']}}/approve"><button class="btn" type="submit">Approve verified payment</button></form></td></tr>
+      {% else %}<tr><td colspan="4">No pending payments.</td></tr>{% endfor %}</table>''', rows=rows)
+
+
+@app.post('/admin/fines/<int:payment_id>/approve')
+@app.post('/backend/admin/fines/<int:payment_id>/approve')
+@login_required
+def admin_approve_library_fine(payment_id):
+    if current_user()['role'] != 'admin':
+        abort(403)
+    from library_fines import approve_payment, FineError
+    conn = db()
+    try:
+        approve_payment(conn, payment_id, current_user()['id'])
+    except FineError as exc:
+        abort(409, str(exc))
+    finally:
+        conn.close()
+    audit('Approved verified library fine payment #' + str(payment_id))
+    flash('Fine payment verified and account balance cleared.')
+    return redirect('/backend/admin/fines')
+
+
+@app.post('/admin/fines/<int:payment_id>/reject')
+@app.post('/backend/admin/fines/<int:payment_id>/reject')
+@login_required
+def admin_reject_library_fine(payment_id):
+    if current_user()['role'] != 'admin':
+        abort(403)
+    from library_fines import reject_payment, FineError
+    conn = db()
+    try:
+        reject_payment(conn, payment_id, current_user()['id'])
+    except FineError as exc:
+        abort(409, str(exc))
+    finally:
+        conn.close()
+    audit('Rejected library fine payment #' + str(payment_id))
+    flash('Payment submission rejected; fine remains unpaid.')
+    return redirect('/backend/admin/fines')
+
 
 @app.route('/loan/<int:lid>/<op>',methods=['POST'])
 @login_required
 def loanop(lid,op):
     if op not in ('renew','return'): abort(400)
-    c=db()
+    from circulation import update_loan, CirculationError
+    conn=db()
     try:
-        loan=c.execute("SELECT status FROM loans WHERE id=? AND user_id=?",(lid,current_user()['id'])).fetchone()
-        if loan is None: abort(404)
-        if loan['status']=='Returned': abort(409,'Loan already returned')
-        if op=='renew':
-            c.execute("UPDATE loans SET due=date(COALESCE(due,date('now')),'+14 day'),status='Renewed' WHERE id=? AND user_id=? AND status!='Returned'",(lid,current_user()['id']))
-        else:
-            c.execute("UPDATE loans SET status='Returned' WHERE id=? AND user_id=? AND status!='Returned'",(lid,current_user()['id']))
-        c.commit()
+        update_loan(conn, lid, op, user_id=current_user()['id'])
+    except CirculationError as exc:
+        abort(409, str(exc))
     finally:
-        c.close()
+        conn.close()
     audit('Customer '+op+' loan #'+str(lid))
     return redirect('/library')
+
+@app.route('/admin/circulation-inventory', methods=['GET','POST'])
+@login_required
+def admin_circulation_inventory():
+    user=current_user()
+    if user['role']!='admin': abort(403)
+    conn=db()
+    try:
+        if request.method=='POST':
+            try:
+                book_id=int(request.form.get('book_id',''))
+                total=int(request.form.get('total_copies',''))
+            except (TypeError,ValueError):
+                abort(400,'Book and whole-number copy count are required.')
+            branch=(request.form.get('branch') or 'Central').strip()[:80] or 'Central'
+            if total<0 or total>100000: abort(400,'Copy count must be between 0 and 100000.')
+            conn.execute('BEGIN IMMEDIATE')
+            if not conn.execute('SELECT 1 FROM books WHERE id=?',(book_id,)).fetchone(): abort(404)
+            row=conn.execute('SELECT total_copies,available_copies FROM library_inventory WHERE book_id=? AND branch=?',(book_id,branch)).fetchone()
+            if row:
+                checked_out=int(row['total_copies'])-int(row['available_copies'])
+                if total<checked_out: abort(409,'Total copies cannot be lower than copies currently on loan.')
+                available=total-checked_out
+                conn.execute('UPDATE library_inventory SET total_copies=?,available_copies=?,updated_at=CURRENT_TIMESTAMP WHERE book_id=? AND branch=?',(total,available,book_id,branch))
+            else:
+                conn.execute('INSERT INTO library_inventory(book_id,branch,total_copies,available_copies) VALUES(?,?,?,?)',(book_id,branch,total,total))
+            conn.commit()
+            conn.close(); audit('Updated library circulation inventory')
+            flash('Library copy availability updated.')
+            return redirect('/admin/circulation-inventory')
+        rows=conn.execute('''SELECT b.id,b.title,b.author,COALESCE(i.branch,b.branch,'Central') branch,
+            COALESCE(i.total_copies,MAX(0,b.stock),0) total_copies,
+            COALESCE(i.available_copies,MAX(0,b.stock),0) available_copies
+            FROM books b LEFT JOIN library_inventory i ON i.book_id=b.id ORDER BY b.title,i.branch''').fetchall()
+    finally:
+        try: conn.close()
+        except Exception: pass
+    return page('Circulation inventory', '''<section class="hero"><span class="pill">Library operations</span><h1>Circulation inventory</h1><p class="muted">Manage borrowable library copies independently from retail sales stock. Copies already on loan are protected from accidental removal.</p></section><div class="grid">{% for item in rows %}<form class="card" method="post"><h3>{{item['title']}}</h3><p class="muted">{{item['author']}} · {{item['branch']}}</p><input type="hidden" name="book_id" value="{{item['id']}}"><label>Branch</label><input class="input" name="branch" maxlength="80" value="{{item['branch']}}" required><label>Total library copies</label><input class="input" type="number" name="total_copies" min="0" max="100000" value="{{item['total_copies']}}" required><p class="muted">Available now: {{item['available_copies']}}</p><button class="btn">Save availability</button></form>{% else %}<p>No books in catalog.</p>{% endfor %}</div>''',rows=rows)
 
 
 @app.get('/librarian')
@@ -1755,6 +1895,8 @@ def security_headers(response):
     response.headers['Referrer-Policy']='strict-origin-when-cross-origin'
     response.headers['X-Permitted-Cross-Domain-Policies']='none'
     response.headers['X-Frame-Options']='DENY'
+    response.headers['Cross-Origin-Opener-Policy']='same-origin'
+    response.headers['X-XSS-Protection']='0'
     response.headers['Permissions-Policy']='camera=(), microphone=(), geolocation=()'
     response.headers['Content-Security-Policy']="frame-ancestors 'none'; object-src 'none'; base-uri 'self'"
     if os.environ.get('LIBRAAI_ENV') == 'production':
@@ -2083,6 +2225,9 @@ install_seller_workspace(app, db, current_user)
 
 from library_operations import install as install_library_operations
 install_library_operations(app, db, current_user)
+
+from circulation import setup as setup_circulation
+setup_circulation(db)
 
 # Start only after ALL blueprints and schema migrations have been registered.
 if __name__=='__main__':

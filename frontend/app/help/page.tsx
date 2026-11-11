@@ -2,36 +2,6 @@
 import Link from "next/link";
 import {useState} from "react";
 import {ArrowRight,BookOpen,ShieldCheck,Sparkles,Headphones,CreditCard,UserRound,ChevronDown,LifeBuoy,Send} from "lucide-react";
-import Notice,{NoticeData} from "@/components/Notice";
 import styles from "./help.module.css";
-const topics=[
- ["Account & sign-in","Check your email address and password. If you cannot access your account, use password reset or contact support.",UserRound],
- ["Reading & library","Refresh the catalog, confirm that the title is available, and check that your account has the required access.",BookOpen],
- ["Audiobooks","Licensed audio requires an active license and a matching purchase or subscription entitlement. Public samples are separately marked.",Headphones],
- ["Payments & orders","Check your order history and payment status. If a payment was deducted but the order is missing, submit the transaction reference to support.",CreditCard],
- ["AI tools & features","Some AI features depend on provider configuration, usage limits and account permissions. Retry later if a provider is temporarily unavailable.",Sparkles],
- ["Privacy & safety","Never share your password or verification code. Contact support if you notice unexpected account activity.",ShieldCheck]
-];
-export default function HelpPage(){
- const [open,setOpen]=useState<number|null>(0);
- const [notice,setNotice]=useState<NoticeData>(null);
- const openAssistant=async()=>{
-  try{
-   const r=await fetch("/backend/api/me",{credentials:"same-origin",cache:"no-store"});
-   const d=await r.json().catch(()=>null);
-   if(!r.ok||!d?.user){setNotice({kind:"info",message:"Please log in or sign up to use the AI Assistant."});return;}
-   window.location.href="/dashboard?assistant=1";
-  }catch{setNotice({kind:"error",message:"Please log in or sign up before opening the AI Assistant."});}
- };
- return <>
-  <main className={styles.page}>
-   <section className={styles.hero}><span><LifeBuoy size={14}/> LIBRAAI HELP CENTER</span><h1>How can we <em>help you?</em></h1><p>Choose a topic to see quick steps. If these do not solve the issue, send a support request and the team can follow up.</p></section>
-   <div className={styles.layout}>
-    <section><div className={styles.heading}><h2>Common questions</h2><p>Click a card to see troubleshooting steps.</p></div><div className={styles.topics}>{topics.map(([title,body,Icon],i)=>{const I=Icon as any;return <article className={`${styles.topic} ${open===i?styles.active:""}`} key={String(title)}><button onClick={()=>setOpen(open===i?null:i)} aria-expanded={open===i}><span className={styles.topicIcon}><I size={19}/></span><span><b>{title as string}</b><small>View suggested solution</small></span><ChevronDown size={17}/></button>{open===i&&<p>{body as string}</p>}</article>})}</div></section>
-    <aside className={styles.aside}><div className={styles.asideIcon}><Send size={23}/></div><h3>Still need help?</h3><p>Describe what happened, which page you were using and what you already tried. A support ticket will be sent to the LibraAI team.</p><Link href="/backend/support/new">Submit a support request <ArrowRight size={14}/></Link><button className={styles.aiButton} onClick={()=>void openAssistant()}><Sparkles size={15}/> Open AI Assistant <ArrowRight size={14}/></button><small>AI Assistant access requires sign-in or sign-up.</small></aside>
-   </div>
-   <footer className={styles.footer}>Need more guidance? <Link href="/contact">Contact LibraAI <ArrowRight size={13}/></Link></footer>
-  </main>
-  <Notice notice={notice} clear={()=>setNotice(null)}/>
- </>;
-}
+const topics=[["Account & sign-in","Check your email address and password. If you cannot access your account, use password reset or contact support.",UserRound],["Reading & library","Refresh the catalog, confirm that the title is available, and check that your account has the required access.",BookOpen],["Audiobooks","Licensed audio requires an active license and a matching purchase or subscription entitlement. Public samples are separately marked.",Headphones],["Payments & orders","Check your order history and payment status. If a payment was deducted but the order is missing, submit the transaction reference to support.",CreditCard],["AI tools & features","Some AI features depend on provider configuration, usage limits and account permissions. Retry later if a provider is temporarily unavailable.",Sparkles],["Privacy & safety","Never share your password or verification code. Contact support if you notice unexpected account activity.",ShieldCheck]];
+export default function HelpPage(){const [open,setOpen]=useState<number|null>(0);return <main className={styles.page}><section className={styles.hero}><span><LifeBuoy size={14}/> LIBRAAI HELP CENTER</span><h1>How can we <em>help you?</em></h1><p>Choose a topic to see quick steps. If these do not solve the issue, send a support request and the team can follow up.</p></section><div className={styles.layout}><section><div className={styles.heading}><h2>Common questions</h2><p>Click a card to see troubleshooting steps.</p></div><div className={styles.topics}>{topics.map(([title,body,Icon],i)=>{const I=Icon as any;return <article className={`${styles.topic} ${open===i?styles.active:""}`} key={String(title)}><button onClick={()=>setOpen(open===i?null:i)} aria-expanded={open===i}><span className={styles.topicIcon}><I size={19}/></span><span><b>{title as string}</b><small>View suggested solution</small></span><ChevronDown size={17}/></button>{open===i&&<p>{body as string}</p>}</article>})}</div></section><aside className={styles.aside}><div className={styles.asideIcon}><Send size={23}/></div><h3>Still need help?</h3><p>Describe what happened, which page you were using and what you already tried. A support ticket will be sent to the LibraAI team.</p><Link href="/backend/support/new">Submit a support request <ArrowRight size={14}/></Link><small>Sign-in is required so the team can securely reply to your ticket.</small></aside></div><footer className={styles.footer}>Need more guidance? <Link href="/contact">Contact LibraAI <ArrowRight size={13}/></Link></footer></main>}

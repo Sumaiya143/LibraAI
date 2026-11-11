@@ -6,7 +6,7 @@ LibraAI uses a **Next.js App Router / React / TypeScript** frontend and a **Pyth
 
 **Requirements:** Python 3.12+, Node.js 20+ (npm included), and internet access for the first dependency installation.
 
-1. Extract the ZIP and open the `LibraAI` folder.
+1. Extract the ZIP and open the extracted project root (the folder containing `app.py`, `compose.yaml`, and `frontend/`). This archive contains one authoritative project copy; do not look for or upload a second nested `LibraAI/` copy.
 2. Double-click `START_LIBRAAI.bat`. It opens backend and frontend in separate terminal windows. Alternatively, start `START_BACKEND.bat` and `START_FRONTEND.bat` separately.
 3. Open `http://localhost:3000`. The backend normally listens on `http://127.0.0.1:5000`.
 4. Keep both terminal windows running while using the app. Close them to stop the local servers.
@@ -41,7 +41,7 @@ On macOS/Linux, run `./SETUP_FRONTEND.sh` from the project root.
 
 ## Complete local verification (Windows)
 
-Run `VERIFY_PROJECT.bat` from the project root after installing Python 3.12+ and Node.js 20+. It installs backend requirements, checks environment prerequisites, runs release/configuration tests, requires the strict Python suite to pass with zero skips, runs frontend source-contract checks, and builds the production frontend. A non-zero exit means verification failed or is incomplete; do not deploy.
+Run `./VERIFY_RELEASE.sh` on macOS/Linux or `VERIFY_PROJECT.bat` on Windows after installing Python 3.12+ and Node.js 20+. It installs backend requirements, checks environment prerequisites, runs release/configuration tests, requires the strict Python suite to pass with zero skips, runs frontend source-contract checks, and builds the production frontend. A non-zero exit means verification failed or is incomplete; do not deploy.
 
 The first frontend setup needs internet access to generate `frontend/package-lock.json`. Commit that generated lockfile to GitHub so clean installs are reproducible. The root `package-lock.json` is for Playwright tests and is not a substitute for the frontend lockfile.
 
@@ -90,3 +90,20 @@ Do not deploy until the build succeeds and the strict production preflight and l
 - `SCALABILITY_REDIS_BN.md` — shared sessions and rate-limiter requirements.
 - `FRONTEND_LOCKFILE_BN.md` — frontend dependency lockfile status.
 - `AUDIOBOOK_HOSTING_SETUP_BN.md` and `SEMANTIC_SEARCH_SETUP_BN.md` — optional integrations.
+
+## One-command verification on macOS/Linux
+
+Run `./VERIFY_PROJECT.sh` from the project root. It creates/uses `.venv`, installs the pinned backend requirements, runs the strict Python suite and release checks, installs the frontend from its committed lockfile, runs every frontend source-contract check, and performs a production Next.js build. Python 3.12+, Node.js 20+, npm, and internet access for dependency installation are required on a clean machine. Do not deploy if any step fails.
+
+`LOCAL_VERIFICATION_REPORT_BN.md` records which checks were run while preparing this archive and which external/live checks still require your own machine or deployment environment.
+
+
+## VPS deployment
+
+For a single Ubuntu VPS, use Docker Compose and Nginx TLS termination. Follow `VPS_DEPLOYMENT_BN.md`, copy `.env.production.example` to `.env`, set a unique production `SECRET_KEY` and real domain, then run `./deploy-vps.sh`. Nginx configuration is provided in `nginx/libraai.conf.example`.
+
+This release uses a persistent SQLite database for a **single VPS / single writer**. Do not run multiple backend replicas or multiple hosts until a tested PostgreSQL migration is completed. Live payment credentials, private object storage, verified backup restoration, and independent security review remain environment-specific release gates.
+
+## Library borrowing fines
+
+The library loan term is 14 days. Default overdue fine is BDT 10 per day from the day after the due date. Customers can view fines and submit payment references; an administrator must verify the payment before the balance is cleared. New borrowing is blocked while an unpaid fine remains. The system issues a Library No-Dues Clearance after the balance is zero; it does not withhold an academic graduation certificate. See `LIBRARY_FINE_POLICY_BN.md`.

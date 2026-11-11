@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
-import { Bot, Sparkles, X, Send, BookOpen, ShieldCheck, LoaderCircle, MessageCircle, ArrowUpRight, Trash2, Mic, Volume2, Square } from "lucide-react";
+import { Bot, Sparkles, X, Send, BookOpen, ShieldCheck, LoaderCircle, MessageCircle, ArrowUpRight, Trash2 } from "lucide-react";
 
 type Message = { role: "assistant" | "user"; text: string };
 const welcome: Message = { role: "assistant", text: "Hello! I’m LibraAI, your reading and learning assistant. Ask about reading strategies, study planning, or your library." };
@@ -16,8 +16,6 @@ export default function FloatingAIChat() {
   const [historyReady, setHistoryReady] = useState(false);
   const syncQueue = useRef<Promise<void>>(Promise.resolve());
   const [notice, setNotice] = useState("");
-  const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<any>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -96,27 +94,6 @@ export default function FloatingAIChat() {
   useEffect(() => { if (open) inputRef.current?.focus(); }, [open]);
   useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [messages, busy, open]);
 
-
-  const toggleVoice = () => {
-    if (listening) { recognitionRef.current?.stop(); setListening(false); return; }
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) { setNotice("Voice commands are not supported by this browser. Try Chrome or Edge."); return; }
-    const recognition = new SpeechRecognition();
-    recognition.lang = document.documentElement.lang === "bn" ? "bn-BD" : "en-US";
-    recognition.interimResults = true; recognition.continuous = false;
-    recognition.onresult = (event: any) => {
-      let text = ""; for (let i = event.resultIndex; i < event.results.length; i++) text += event.results[i][0]?.transcript || "";
-      setDraft(text);
-    };
-    recognition.onerror = () => { setListening(false); setNotice("I couldn't hear that. Please allow microphone access and try again."); };
-    recognition.onend = () => { setListening(false); };
-    recognitionRef.current = recognition; setNotice("Listening… speak your question."); setListening(true); recognition.start();
-  };
-  const speak = (text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) { setNotice("Voice playback is not supported by this browser."); return; }
-    window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = document.documentElement.lang === "bn" ? "bn-BD" : "en-US"; window.speechSynthesis.speak(utterance);
-  };
-
   const send = async (event?: FormEvent, suggestion?: string) => {
     event?.preventDefault();
     const question = (suggestion ?? draft).trim();
@@ -154,10 +131,10 @@ export default function FloatingAIChat() {
     {open && <section id="libraai-assistant-window" className="libra-ai-window" role="dialog" aria-modal="false" aria-label="LibraAI AI assistant">
       <header className="libra-ai-window-head"><span className="libra-ai-avatar"><Bot size={21}/></span><span className="libra-ai-head-copy"><b>LibraAI Assistant</b><small><span className="libra-ai-online-dot"/> Reading & learning support</small></span><button className="libra-ai-close" onClick={clearHistory} aria-label="Clear conversation history" title="Clear conversation history"><Trash2 size={16}/></button><button className="libra-ai-close" onClick={() => setOpen(false)} aria-label="Close AI assistant"><X size={19}/></button></header>
       <div className="libra-ai-trust"><ShieldCheck size={13}/> Avoid sharing passwords or payment details.</div>
-      <div className="libra-ai-messages" ref={listRef} aria-live="polite">{messages.map((message, index) => <div className={`libra-ai-message ${message.role}`} key={`${index}-${message.role}`}><span className="libra-ai-message-icon">{message.role === "assistant" ? <Sparkles size={13}/> : <MessageCircle size={13}/>}</span><p>{message.text}</p>{message.role === "assistant"&&<button className="libra-ai-speak" type="button" onClick={()=>speak(message.text)} aria-label="Read answer aloud" title="Read answer aloud"><Volume2 size={13}/></button>}</div>)}{busy && <div className="libra-ai-typing"><LoaderCircle size={15}/> LibraAI is thinking…</div>}</div>
+      <div className="libra-ai-messages" ref={listRef} aria-live="polite">{messages.map((message, index) => <div className={`libra-ai-message ${message.role}`} key={`${index}-${message.role}`}><span className="libra-ai-message-icon">{message.role === "assistant" ? <Sparkles size={13}/> : <MessageCircle size={13}/>}</span><p>{message.text}</p></div>)}{busy && <div className="libra-ai-typing"><LoaderCircle size={15}/> LibraAI is thinking…</div>}</div>
       {messages.length === 1 && <div className="libra-ai-prompts"><span>Try asking</span>{["Help me build a reading plan", "How can I study more effectively?", "Summarize a topic I provide"].map(prompt => <button key={prompt} onClick={() => void send(undefined, prompt)} disabled={busy}>{prompt}<ArrowUpRight size={13}/></button>)}</div>}
       {notice && <div className="libra-ai-notice" role="status">{notice} {notice.includes("Sign in") && <Link href="/login" onClick={() => setOpen(false)}>Sign in</Link>}{notice.includes("Access is restricted") && <Link href="/help" onClick={() => setOpen(false)}>Get help</Link>}</div>}
-      <form className="libra-ai-compose" onSubmit={send}><input ref={inputRef} value={draft} onChange={event => setDraft(event.target.value)} maxLength={2000} placeholder="Ask LibraAI anything…" aria-label="Message LibraAI"/><button type="button" className={listening?"voice-active":""} onClick={toggleVoice} aria-label={listening?"Stop voice command":"Use voice command"} title={listening?"Stop listening":"Voice command"}>{listening?<Square size={15}/>:<Mic size={17}/>}</button><button type="submit" disabled={!draft.trim() || busy} aria-label="Send message"><Send size={17}/></button></form>
+      <form className="libra-ai-compose" onSubmit={send}><input ref={inputRef} value={draft} onChange={event => setDraft(event.target.value)} maxLength={2000} placeholder="Ask LibraAI anything…" aria-label="Message LibraAI"/><button type="submit" disabled={!draft.trim() || busy} aria-label="Send message"><Send size={17}/></button></form>
       <footer className="libra-ai-foot"><BookOpen size={12}/> History syncs to your account when signed in; this browser keeps a local backup. Answers depend on available sources and AI provider setup.</footer>
     </section>}
     <button className={`libra-ai-launcher ${open ? "is-open" : ""}`} onClick={() => setOpen(value => !value)} aria-label={open ? "Close LibraAI chatbot" : "Open LibraAI AI chatbot"} aria-expanded={open} aria-controls="libraai-assistant-window"><span className="libra-ai-launcher-icon">{open ? <X size={23}/> : <><Bot size={25}/><Sparkles size={11} className="libra-ai-sparkle"/></>}</span><span className="libra-ai-launcher-label">Ask AI</span></button>

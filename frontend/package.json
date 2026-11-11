@@ -15,7 +15,8 @@
     "verify:homepage-v63": "node scripts/verify-homepage-v63.mjs",
     "verify:dashboard-workspace": "node scripts/verify-dashboard-workspace.mjs",
     "verify:seller-workspace": "node scripts/verify-seller-workspace.mjs",
-    "verify:role-pages": "node scripts/verify-role-pages.mjs"
+    "verify:role-pages": "node scripts/verify-role-pages.mjs",
+    "verify:fines": "node scripts/verify-library-fines.mjs"
   },
   "dependencies": {
     "lucide-react": "0.468.0",

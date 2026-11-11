@@ -21,6 +21,10 @@ _REDIS_CLIENT_URL = None
 _FINGERPRINT_SALT = (os.getenv('LIBRAAI_RATE_LIMIT_HMAC_KEY') or os.getenv('SECRET_KEY') or secrets.token_hex(32)).encode('utf-8')
 _EVENTS: dict[tuple[str, str], deque[float]] = defaultdict(deque)
 _RULES = (
+    ("/api/login", 8, 60),
+    ("/api/auth/login", 8, 60),
+    ("/api/signup", 5, 300),
+    ("/api/auth/signup", 5, 300),
     ("/login", 10, 60),
     ("/signup", 8, 60),
     ("/forgot-password", 5, 300),

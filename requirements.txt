@@ -5,3 +5,6 @@ cryptography>=49,<51
 
 # Shared sessions and atomic distributed rate limiting.
 redis==6.4.0
+
+# IANA timezone database for consistent library due dates on Windows/Linux.
+tzdata>=2025.2,<2027

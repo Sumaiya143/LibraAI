@@ -1,11 +1,13 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-const root=new URL('../..',import.meta.url).pathname;
-const backend=fs.readFileSync(`${root}/library_operations.py`,'utf8');
-const app=fs.readFileSync(`${root}/app.py`,'utf8');
-const admin=fs.readFileSync(`${root}/frontend/components/AdminWorkspace.tsx`,'utf8');
-const dashboard=fs.readFileSync(`${root}/frontend/app/dashboard/page.tsx`,'utf8');
-const reader=fs.readFileSync(`${root}/static/reader.html`,'utf8');
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+const root=fileURLToPath(new URL('../..',import.meta.url));
+const backend=fs.readFileSync(path.join(root,'library_operations.py'),'utf8');
+const app=fs.readFileSync(path.join(root,'app.py'),'utf8');
+const admin=fs.readFileSync(path.join(root,'frontend/components/AdminWorkspace.tsx'),'utf8');
+const dashboard=fs.readFileSync(path.join(root,'frontend/app/dashboard/page.tsx'),'utf8');
+const reader=fs.readFileSync(path.join(root,'static/reader.html'),'utf8');
 const checks=[
  ['Admin member directory API',"@app.get('/api/admin/members')"],
  ['Admin member role/status mutation API',"@app.patch('/api/admin/members/<int:member_id>')"],

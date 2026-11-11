@@ -26,6 +26,15 @@ class ApiResilienceTests(unittest.TestCase):
         self.assertIsNotNone(check_rate_limit('/api/ai','POST','client',5))
     def test_unmatched_paths_are_not_limited(self):
         self.assertIsNone(check_rate_limit('/api/catalog/search','POST','client',5))
+    def test_json_login_api_is_rate_limited(self):
+        for _ in range(8):
+            self.assertIsNone(check_rate_limit('/api/login','POST','client',5))
+        self.assertEqual(check_rate_limit('/api/login','POST','client',5)['error'],'rate_limit_exceeded')
+
+    def test_auth_aliases_are_rate_limited(self):
+        for _ in range(5):
+            self.assertIsNone(check_rate_limit('/api/auth/signup','POST','client',5))
+        self.assertEqual(check_rate_limit('/api/auth/signup','POST','client',5)['error'],'rate_limit_exceeded')
 
     def test_json_request_log_formatter_only_emits_explicit_safe_fields(self):
         record = logging.LogRecord('test', logging.INFO, __file__, 1, 'private@example.com 203.0.113.9', (), None)

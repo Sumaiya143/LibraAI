@@ -66,6 +66,7 @@ jobs:
         run: |
           npm run verify:shell
           npm run verify:security-headers
+          node scripts/verify-library-fines.mjs
       - name: Build production Next.js frontend
         env:
           NEXT_TELEMETRY_DISABLED: '1'

@@ -1,3 +1,5 @@
 @echo off
-call venv\Scripts\activate
-python app.py
+setlocal
+cd /d "%~dp0"
+call START_BACKEND.bat
+exit /b %errorlevel%

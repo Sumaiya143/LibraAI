@@ -1,14 +1,12 @@
-# Exclude local secrets from Docker build
-.env
-.env.*
-!.env.example
-*.db
-*.sqlite*
-*.zip
-*.log
+.git
+.venv
+venv
 __pycache__/
+*.py[cod]
 .pytest_cache/
-.git/
-.venv/
-venv/
-*.pyc
+.env
+.env.*.local
+*.sqlite
+*.db
+frontend/node_modules/
+frontend/.next/

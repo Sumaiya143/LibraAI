@@ -1,0 +1,14 @@
+LibraAI v73 startup compatibility fix
+
+Fixed:
+- library_operations previously reused the table name reading_sessions even though ecosystem_routes.py uses that name for a different schema (minutes/pages/session_date). This caused startup to fail while creating an index on started_at.
+- Library timed-reading operations now use their own library_reading_sessions table and index, avoiding destructive changes to existing reading history.
+- Corrected missing whitespace in the branch_inventory CHECK constraint.
+
+Existing database files are not deleted or reset. The new table is created automatically at startup.
+
+Validation performed:
+- Python compileall completed successfully.
+- Isolated SQLite initialization test passed against an existing legacy reading_sessions table.
+
+Start using START_LIBRAI.bat as before. Keep the project folder and database backup intact.

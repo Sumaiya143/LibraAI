@@ -16,7 +16,7 @@ for (const [name, condition] of [
  ['Five reviews and carousel controls exist', home.includes('readerReviews') && home.includes('Previous reviews') && home.includes('Next reviews')],
  ['FAQ has interactive accordion', home.includes('faq-open') && home.includes('aria-expanded')],
  ['Payment setup floating launcher removed from root layout', !layout.includes('FloatingPaymentSetup')],
- ['Lora and Google display font are loaded', layout.includes('family=Lora') && layout.includes('family=UnifrakturMaguntia')],
+ ['Only the Lora Google Font is loaded; decorative fonts are excluded', layout.includes('family=Lora') && !layout.includes('family=UnifrakturMaguntia') && !layout.includes('family=DM+Sans') && !layout.includes('family=Manrope')],
  ['Motion and glassmorphism styles exist', css.includes('backdrop-filter:blur(16px)') && css.includes('@keyframes heroFloat')]
 ]) { assert.ok(condition, name); console.log(`PASS ${name}`); }
 console.log('Homepage v63 checks passed.');

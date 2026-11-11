@@ -74,7 +74,7 @@ export default function Header() {
       <nav id="primary-navigation" className={mobile ? "nav-links nav-open" : "nav-links"} aria-label="Main navigation">
         <Link className={active("/") ? "active" : ""} aria-current={active("/") ? "page" : undefined} href="/" onClick={closeMobile}>{labels.home}</Link>
         <Link className={active("/library") ? "active" : ""} aria-current={active("/library") ? "page" : undefined} href="/library" onClick={closeMobile}>Browse</Link>
-        <Link className={active("/about") ? "active" : ""} href="/about" onClick={closeMobile}>About</Link>
+        <Link className={active("/about") ? "active" : ""} href="/#about" onClick={closeMobile}>About</Link>
         <div className={`nav-dropdown ${resourcesOpen ? "nav-dropdown-open" : ""}`}>
           <button type="button" className={active("/workspace") || active("/community") || active("/study-tools") ? "active" : ""} aria-expanded={resourcesOpen} onClick={() => setResourcesOpen(v => !v)}>Resources <ChevronDown size={13}/></button>
           <div className="nav-dropdown-menu">

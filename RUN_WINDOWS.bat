@@ -1,4 +1,5 @@
 @echo off
+setlocal
 cd /d "%~dp0"
-python release_server.py
-pause
+call START_LIBRAAI.bat
+exit /b %errorlevel%
