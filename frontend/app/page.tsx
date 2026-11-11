@@ -30,6 +30,26 @@ const readerReviews = [
  {name:"Samiul Karim",role:"University student",rating:"4.9",text:"Having reading, audio and study support together makes learning feel more connected.",avatar:"https://i.pravatar.cc/100?img=60"}
 ];
 const coverTitles:Record<string,string>={atomic:"Atomic Habits",dune:"DUNE",money:"The Psychology of Money",ends:"IT ENDS WITH US",hail:"PROJECT HAIL MARY",wing:"FOURTH WING"};
+const audioRanks:Record<string,{title:string;author:string;genre:string;duration:string;rating:string}[]> = {
+  Weekly: [
+    {title:"Atomic Habits",author:"James Clear",genre:"Personal Growth",duration:"5h 35m",rating:"4.9"},
+    {title:"The Psychology of Money",author:"Morgan Housel",genre:"Finance",duration:"5h 48m",rating:"4.8"},
+    {title:"Ikigai",author:"Héctor García",genre:"Wellbeing",duration:"3h 12m",rating:"4.7"},
+    {title:"Deep Work",author:"Cal Newport",genre:"Productivity",duration:"7h 44m",rating:"4.8"}
+  ],
+  Monthly: [
+    {title:"The Psychology of Money",author:"Morgan Housel",genre:"Finance",duration:"5h 48m",rating:"4.8"},
+    {title:"Atomic Habits",author:"James Clear",genre:"Personal Growth",duration:"5h 35m",rating:"4.9"},
+    {title:"Rich Dad Poor Dad",author:"Robert Kiyosaki",genre:"Business",duration:"6h 04m",rating:"4.6"},
+    {title:"Deep Work",author:"Cal Newport",genre:"Productivity",duration:"7h 44m",rating:"4.8"}
+  ],
+  "All time": [
+    {title:"Atomic Habits",author:"James Clear",genre:"Personal Growth",duration:"5h 35m",rating:"4.9"},
+    {title:"Ikigai",author:"Héctor García",genre:"Wellbeing",duration:"3h 12m",rating:"4.7"},
+    {title:"The Alchemist",author:"Paulo Coelho",genre:"Fiction",duration:"4h 00m",rating:"4.7"},
+    {title:"Deep Work",author:"Cal Newport",genre:"Productivity",duration:"7h 44m",rating:"4.8"}
+  ]
+};
 export default function Home() {
  const [notice,setNotice]=useState<NoticeData>(null);
  const [homeBooks,setHomeBooks]=useState(books);
@@ -71,7 +91,79 @@ export default function Home() {
   </section>
   <section className="home-community-stats" id="community"><div className="community-intro"><h2>Join a Growing Community<br/>of Book Lovers</h2><p>A shared space for readers, students and creators to discover, learn and grow.</p></div><div className="community-stat"><span><UsersRound size={21}/></span><b>Community</b><small>Reader connections</small></div><div className="community-stat"><span><BookOpen size={21}/></span><b>Multi-format</b><small>Books and reading</small></div><div className="community-stat"><span><LibraryBig size={21}/></span><b>AI-assisted</b><small>Learning tools</small></div><div className="community-stat"><span><BadgeCheck size={21}/></span><b>Reader-first</b><small>Accessible experience</small></div></section>
   <section className="home-about-section" id="about"><div className="home-about-copy"><span className="section-kicker">ABOUT LIBRAAI</span><h2>A calmer, smarter way to<br/><span className="about-heading-accent">read, learn and grow.</span></h2><p>LibraAI brings your reading life together — discover books, enjoy audiobooks, explore manga and use AI-powered tools to make every reading session more meaningful.</p><Link href="/about" className="section-link">Discover our story <ArrowRight size={14}/></Link></div><div className="about-highlights"><div><BookOpen/><b>One connected library</b><small>Books and knowledge in one place</small></div><div><Brain/><b>Learning that adapts</b><small>Tools that support your curiosity</small></div><div><UsersRound/><b>Readers together</b><small>A community built around ideas</small></div><Link href="/help" className="about-ai-help"><span><Sparkles size={21}/></span><b>AI Help</b><small>Get intelligent guidance whenever you need it</small><ArrowRight className="about-ai-arrow" size={16}/></Link></div></section>
-  <section className="home-audio-section"><div className="section-heading-row"><div><span className="section-kicker">LISTEN & DISCOVER</span><h2>Popular Audiobooks</h2><p>Give your eyes a break. Keep your curiosity moving.</p></div><Link href="/workspace/audiobooks" className="section-link">Explore audiobooks <ArrowRight size={14}/></Link></div><div className="audio-layout"><div className="audio-featured"><div className="audio-art"><Headphones size={44}/><span>LISTEN<br/>ANYWHERE</span></div><div><span className="audio-label">EDITOR'S PICK</span><h3>The Art of Being<br/>Unbothered</h3><p>Thoughtful listening for a more intentional life.</p><Link href="/workspace/audiobooks" className="audio-play"><Play size={13} fill="currentColor"/> Explore audio library</Link></div></div><div className="audio-ranking"><div className="audio-tabs">{["Weekly","Monthly","All time"].map(tab=><button key={tab} onClick={()=>setAudioTab(tab)} className={audioTab===tab?"active":""}>{tab}</button>)}</div>{(audioTab==="Weekly"?["Atomic Habits","The Psychology of Money","Ikigai","Deep Work"]:audioTab==="Monthly"?["The Psychology of Money","Atomic Habits","Rich Dad Poor Dad","Deep Work"]:["Atomic Habits","Ikigai","The Alchemist","Deep Work"]).map((title,i)=><div className="audio-rank-row" key={title}><b>0{i+1}</b><span className="audio-mini-cover"><Headphones size={16}/></span><div><strong>{title}</strong><small>{["James Clear","Morgan Housel","Héctor García","Cal Newport"][i]}</small></div><span className="audio-stars">★ 4.{8-i%3}</span></div>)}</div></div></section>
+   <section className="home-audio-section">
+    <div className="section-heading-row">
+     <div>
+      <span className="section-kicker">LISTEN & DISCOVER</span>
+      <h2>Popular Audiobooks</h2>
+      <p>Give your eyes a break. Keep your curiosity moving.</p>
+     </div>
+     <Link href="/workspace/audiobooks" className="section-link">Explore audiobooks <ArrowRight size={14}/></Link>
+    </div>
+    <div className="audio-layout">
+     <div className="audio-featured">
+      <div className="audio-featured-top">
+       <span className="audio-label-badge"><Sparkles size={11}/> EDITOR'S CHOICE</span>
+       <span className="audio-duration-pill">5h 35m · Unabridged</span>
+      </div>
+      <div className="audio-featured-body">
+       <div className="audio-art">
+        <Headphones size={42}/>
+        <span>LISTEN<br/>ANYWHERE</span>
+       </div>
+       <div className="audio-featured-content">
+        <span className="audio-author">Brenna Smith · Narrated for LibraAI</span>
+        <h3>The Art of Being<br/>Unbothered</h3>
+        <p>Thoughtful listening for a more intentional life. Master the quiet power of focus, composure and daily clarity.</p>
+        <Link href="/workspace/audiobooks" className="audio-play">
+         <span className="audio-wave-anim" aria-hidden="true"><span/><span/><span/><span/><span/></span>
+         <Play size={13} fill="currentColor"/> Listen to sample
+        </Link>
+       </div>
+      </div>
+     </div>
+     <div className="audio-ranking-card">
+      <div className="audio-ranking-header">
+       <div className="audio-ranking-title"><Headphones size={15}/><span>Trending Listens</span></div>
+       <div className="audio-tabs">
+        {["Weekly","Monthly","All time"].map(tab=><button key={tab} onClick={()=>setAudioTab(tab)} className={audioTab===tab?"active":""}>{tab}</button>)}
+       </div>
+      </div>
+      <div className="audio-rank-list">
+       {(audioRanks[audioTab]||audioRanks["Weekly"]).map((item,i)=><Link href="/workspace/audiobooks" className="audio-rank-row" key={item.title}>
+        <b className="audio-rank-num">0{i+1}</b>
+        <span className="audio-mini-cover"><Headphones size={16}/></span>
+        <div className="audio-rank-info">
+         <strong>{item.title}</strong>
+         <small>{item.author} · <span>{item.genre}</span></small>
+        </div>
+        <div className="audio-rank-meta">
+         <span className="audio-rank-duration">{item.duration}</span>
+         <span className="audio-stars">★ {item.rating}</span>
+        </div>
+       </Link>)}
+      </div>
+     </div>
+    </div>
+    <div className="audio-perks-strip">
+     <div className="audio-perk-item">
+      <span className="audio-perk-icon"><Headphones size={17}/></span>
+      <div><b>Studio Narration</b><small>High fidelity human voices</small></div>
+     </div>
+     <div className="audio-perk-item">
+      <span className="audio-perk-icon"><Sparkles size={17}/></span>
+      <div><b>Smart Progress Sync</b><small>Pick up right where you paused</small></div>
+     </div>
+     <div className="audio-perk-item">
+      <span className="audio-perk-icon"><Brain size={17}/></span>
+      <div><b>AI Chapter Notes</b><small>Key takeaways while you listen</small></div>
+     </div>
+     <div className="audio-perk-item">
+      <span className="audio-perk-icon"><ShieldCheck size={17}/></span>
+      <div><b>Curated Library</b><small>15+ authorized audio titles</small></div>
+     </div>
+    </div>
+   </section>
   <section className="home-features-section" id="features"><div className="section-heading-row centered"><div><span className="section-kicker">MADE FOR CURIOUS MINDS</span><h2>Everything you need to go further</h2><p>More than a place to read — a complete reading and learning experience.</p></div></div><div className="feature-showcase">{[{icon:BookOpen,title:"A world of books",desc:"Discover stories, ideas and knowledge across genres."},{icon:Brain,title:"AI learning companion",desc:"Explore summaries, explanations and study support."},{icon:Headphones,title:"Listen on your time",desc:"Enjoy audio-first learning wherever life takes you."},{icon:UsersRound,title:"A reader community",desc:"Share recommendations and connect through books."},{icon:Bookmark,title:"Your personal shelf",desc:"Keep your reading journey organized and close."},{icon:ShieldCheck,title:"A trusted experience",desc:"Thoughtful tools with privacy and account security."}].map(({icon:Icon,title,desc})=><article className="feature-showcase-card" key={title}><span><Icon size={21}/></span><h3>{title}</h3><p>{desc}</p></article>)}</div></section>
   <section className="home-products-section"><div className="section-heading-row"><div><span className="section-kicker">THE LIBRAAI SHOP</span><h2>Latest Products</h2><p>Thoughtfully selected essentials for every reading ritual.</p></div><Link href="/signup" className="shop-view-store" onClick={(e)=>{e.preventDefault();setNotice({kind:"info",message:"Create your free LibraAI account or sign in before entering the store."})}}>View Store <ArrowRight size={14}/></Link></div><div className="shop-grid">{[{name:"The Daily Reader Journal",type:"Stationery",price:"৳650",image:"/assets/shop-journal.svg",desc:"A guided space for notes and reflections."},{name:"Classic Manga Collection",type:"Manga",price:"৳890",image:"/assets/shop-manga.svg",desc:"A beautifully curated illustrated collection."},{name:"The Focus Bookmark Set",type:"Stationery",price:"৳320",image:"/assets/shop-bookmarks.svg",desc:"Elegant bookmarks for your current reads."},{name:"The Art of Reading",type:"Book",price:"৳750",image:"/assets/shop-reading.svg",desc:"A thoughtful companion for curious minds."},{name:"Reader's Desk Essentials",type:"Accessories",price:"৳1,250",image:"/assets/shop-desk.svg",desc:"A refined kit for your reading corner."}].map(item=><article className="shop-card" key={item.name}><div className="shop-art"><img src={item.image} alt={item.name}/><span className="shop-image-glow"/></div><span>{item.type}</span><h3>{item.name}</h3><p className="shop-description">{item.desc}</p><div className="shop-card-bottom"><b>{item.price}</b><button onClick={()=>setNotice({kind:"info",message:"Please create an account or sign in before accessing the LibraAI Store."})}>Member access <ArrowRight size={12}/></button></div></article>)}</div></section>
   <section className="home-reviews-section"><div className="section-heading-row"><div><span className="section-kicker">KIND WORDS FROM READERS</span><h2>Readers love LibraAI</h2><p>Reader stories and sample testimonials from the LibraAI community.</p></div><div className="review-score"><b>4.8</b><span>★★★★★</span><small>Sample rating · 2.5K+ readers</small></div></div><div className="review-carousel-wrap"><button className="review-arrow" aria-label="Previous reviews" onClick={()=>setReviewIndex(i=>(i+4)%5)}><ChevronLeft size={20}/></button><div className="review-grid">{visibleReviews.map(review=><article className="reader-review-card" key={review.name}><div className="review-user"><img src={review.avatar} alt={`${review.name} profile`} /><div><b>{review.name}</b><small>{review.role}</small></div><span>✓</span></div><div className="review-stars">★★★★★ <b>{review.rating}</b></div><p>“{review.text}”</p></article>)}</div><button className="review-arrow" aria-label="Next reviews" onClick={()=>setReviewIndex(i=>(i+1)%5)}><ChevronRight size={20}/></button></div><div className="review-position"><span>{reviewIndex+1} / 5</span><div>{[0,1,2,3,4].map(i=><button key={i} aria-label={`Go to review ${i+1}`} className={reviewIndex===i?"active":""} onClick={()=>setReviewIndex(i)}/>)}</div></div></section>
